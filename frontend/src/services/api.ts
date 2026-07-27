@@ -75,4 +75,31 @@ export const api = {
   tiendas: crudDe<import('../interfaces').Tienda>('tiendas'),
   personajes: crudDe<import('../interfaces').Personaje>('personajes'),
   objetos: crudDe<import('../interfaces').Objeto>('objetos'),
+
+  // --- Entidades con CLAVE COMPUESTA ---
+  // La URL lleva todas las partes de la clave, no un solo id.
+
+  sesiones: {
+    obtenerTodos: () => pedir<import('../interfaces').Sesion[]>('/sesiones'),
+    obtenerPorClave: (idPartida: number, numSesion: number) =>
+      pedir<import('../interfaces').Sesion>(`/sesiones/${idPartida}/${numSesion}`),
+    crear: (datos: Record<string, unknown>) =>
+      pedir<import('../interfaces').Sesion>('/sesiones', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+      }),
+    eliminar: (idPartida: number, numSesion: number) =>
+      pedir<void>(`/sesiones/${idPartida}/${numSesion}`, { method: 'DELETE' }),
+  },
+
+  misiones: {
+    obtenerTodos: () => pedir<import('../interfaces').Mision[]>('/misiones'),
+    crear: (datos: Record<string, unknown>) =>
+      pedir<import('../interfaces').Mision>('/misiones', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+      }),
+    eliminar: (idPartida: number, numSesion: number, numMision: number) =>
+      pedir<void>(`/misiones/${idPartida}/${numSesion}/${numMision}`, { method: 'DELETE' }),
+  },
 };

@@ -1,249 +1,173 @@
-import * as React from 'react';
 import { useEffect, useState } from 'react';
-import type { Usuario } from './interfaces.ts';
-import { usuarioService } from './services/usuario.service';
+import './styles/theme.css';
 import { authService, type Rol, type UsuarioAutenticado } from './services/auth.service';
+import { Inicio } from './pages/Inicio';
+import { NuevaPartida } from './pages/NuevaPartida';
+import { CrearMisiones } from './pages/CrearMisiones';
 
-// allow JSX in environments without @types/react
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      [elemName: string]: any;
-    }
-  }
-}
+type Vista = 'inicio' | 'nuevaPartida' | 'crearMisiones';
 
-// Vista actual del "menú" (reemplaza el while + switch de la consola)
-type Vista = 'principal' | 'registro' | 'login';
+export default function App() {
+  const [usuario, setUsuario] = useState<UsuarioAutenticado | null>(null);
+  const [vista, setVista] = useState<Vista>('inicio');
+  const [cargando, setCargando] = useState(true);
 
-export default function MenuApp() {
-  // Los usuarios ya NO viven en memoria: se traen del backend (MySQL).
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [vista, setVista] = useState<Vista>('principal');
-  const [usuarioLogueado, setUsuarioLogueado] = useState<UsuarioAutenticado | null>(null);
-  const [mensaje, setMensaje] = useState<string>('');
-  const [cargando, setCargando] = useState<boolean>(true);
-
-  // La lista de usuarios es una ruta protegida: solo se puede traer con sesion.
-  async function refrescarUsuarios() {
-    try {
-      setUsuarios(await usuarioService.obtenerTodos());
-    } catch (error) {
-      setUsuarios([]);
-    }
-  }
-
-  // Al cargar la pagina intentamos recuperar la sesion con el token guardado
+  // Recupera la sesion al recargar la pagina (token guardado)
   useEffect(() => {
     (async () => {
       try {
-        const perfil = await authService.perfil();
-        if (perfil) {
-          setUsuarioLogueado(perfil);
-          await refrescarUsuarios();
-        }
-      } catch {
-        setMensaje('No se pudo conectar con el servidor. ¿Está corriendo el backend?');
+        setUsuario(await authService.perfil());
       } finally {
         setCargando(false);
       }
     })();
   }, []);
 
-  async function registrarUsuario(
-    nombreUsuario: string,
-    nickname: string,
-    contrasena: string,
-    rol: Rol
-  ) {
-    try {
-      // El registro devuelve el token: queda logueado automaticamente
-      const usuario = await authService.registrar(nombreUsuario, nickname, contrasena, rol);
-      setUsuarioLogueado(usuario);
-      await refrescarUsuarios();
-      setMensaje(`Bienvenido ${usuario.nickname}, te registraste como ${rol}.`);
-      setVista('principal');
-    } catch (error) {
-      setMensaje(`No se pudo registrar: ${(error as Error).message}`);
-    }
-  }
-
-  async function loguearse(nickname: string, contrasena: string) {
-    try {
-      const usuario = await authService.login(nickname, contrasena);
-      setUsuarioLogueado(usuario);
-      await refrescarUsuarios();
-      setMensaje(`Bienvenido ${usuario.nickname} (${usuario.roles.join(', ')}).`);
-      setVista('principal');
-    } catch (error) {
-      setMensaje((error as Error).message);
-    }
-  }
-
   function cerrarSesion() {
     authService.cerrarSesion();
-    setUsuarioLogueado(null);
-    setUsuarios([]);
-    setMensaje('Sesión cerrada.');
-    setVista('principal');
+    setUsuario(null);
+    setVista('inicio');
+  }
+
+  if (cargando) {
+    return (
+      <div className="pagina pagina--angosta">
+        <p className="aviso">Cargando…</p>
+      </div>
+    );
+  }
+
+  if (!usuario) {
+    return <Acceso onEntrar={setUsuario} />;
+  }
+
+  if (vista === 'nuevaPartida') {
+    return <NuevaPartida usuario={usuario} onVolver={() => setVista('inicio')} />;
+  }
+
+  if (vista === 'crearMisiones') {
+    return <CrearMisiones usuario={usuario} onVolver={() => setVista('inicio')} />;
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '2rem auto', fontFamily: 'sans-serif' }}>
-      <h2>Gestor de turnos — juegos de rol</h2>
-
-      {mensaje && (
-        <p style={{ background: '#eee', padding: '0.5rem', borderRadius: 4 }}>{mensaje}</p>
-      )}
-
-      {cargando && <p>Cargando…</p>}
-
-      {/* CON sesion: datos del usuario y la lista (ruta protegida) */}
-      {!cargando && usuarioLogueado && (
-        <>
-          <p>
-            Sesión activa: <strong>{usuarioLogueado.nickname}</strong>{' '}
-            <em>({usuarioLogueado.roles.join(', ')})</em>{' '}
-            <button onClick={cerrarSesion}>Cerrar sesión</button>
-          </p>
-
-          <hr />
-          <p>Usuarios registrados (guardados en la base de datos):</p>
-          <ul>
-            {usuarios.map((u: Usuario) => (
-              <li key={u.idUsuario}>
-                {u.nickname} — {u.nombreUsuario}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      {/* SIN sesion: solo login y registro */}
-      {!cargando && !usuarioLogueado && (
-        <>
-          {vista === 'principal' && (
-            <PantallaPrincipal
-              onLoguearse={() => setVista('login')}
-              onRegistrarse={() => setVista('registro')}
-            />
-          )}
-
-          {vista === 'registro' && (
-            <PantallaRegistro
-              onRegistrar={registrarUsuario}
-              onVolver={() => setVista('principal')}
-            />
-          )}
-
-          {vista === 'login' && (
-            <PantallaLogin onLoguearse={loguearse} onVolver={() => setVista('principal')} />
-          )}
-        </>
-      )}
-    </div>
+    <Inicio
+      usuario={usuario}
+      onCerrarSesion={cerrarSesion}
+      onNuevaPartida={() => setVista('nuevaPartida')}
+      onCrearMisiones={() => setVista('crearMisiones')}
+    />
   );
 }
- 
-function PantallaPrincipal({
-  onLoguearse,
-  onRegistrarse,
-}: {
-  onLoguearse: () => void;
-  onRegistrarse: () => void;
-}) {
-  return (
-    <div>
-      <button onClick={onLoguearse}>Loguearse</button>
-      <button onClick={onRegistrarse}>Registrarse</button>
-    </div>
-  );
-}
- 
-function PantallaLogin({
-  onLoguearse,
-  onVolver,
-}: {
-  onLoguearse: (nickname: string, contrasena: string) => void | Promise<void>;
-  onVolver: () => void;
-}) {
-  const [nickname, setNickname] = useState('');
-  const [contrasena, setContrasena] = useState('');
- 
-  return (
-    <div>
-      <input
-        placeholder="Nickname"
-        value={nickname}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNickname(e.target.value)}
-      />
-      <input
-        placeholder="Contraseña"
-        type="password"
-        value={contrasena}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContrasena(e.target.value)}
-      />
-      <button onClick={() => onLoguearse(nickname, contrasena)}>Ingresar</button>
-      <button onClick={onVolver}>Volver</button>
-    </div>
-  );
-}
- 
-function PantallaRegistro({
-  onRegistrar,
-  onVolver,
-}: {
-  onRegistrar: (
-    nombreUsuario: string,
-    nickname: string,
-    contrasena: string,
-    rol: 'jugador' | 'anfitrion'
-  ) => void | Promise<void>;
-  onVolver: () => void;
-}) {
+
+// ---------- Login / Registro ----------
+
+function Acceso({ onEntrar }: { onEntrar: (u: UsuarioAutenticado) => void }) {
+  const [modo, setModo] = useState<'login' | 'registro'>('login');
   const [nombreUsuario, setNombreUsuario] = useState('');
   const [nickname, setNickname] = useState('');
   const [contrasena, setContrasena] = useState('');
-  const [tipo, setTipo] = useState<'jugador' | 'anfitrion'>('jugador');
- 
+  const [rol, setRol] = useState<Rol>('jugador');
+  const [mensaje, setMensaje] = useState('');
+  const [enviando, setEnviando] = useState(false);
+
+  async function enviar() {
+    setEnviando(true);
+    setMensaje('');
+    try {
+      const usuario =
+        modo === 'login'
+          ? await authService.login(nickname, contrasena)
+          : await authService.registrar(nombreUsuario, nickname, contrasena, rol);
+      onEntrar(usuario);
+    } catch (error) {
+      setMensaje((error as Error).message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
   return (
-    <div>
-      <input
-        placeholder="Nombre y apellido"
-        value={nombreUsuario}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNombreUsuario(e.target.value)}
-      />
-      <input
-        placeholder="Nickname"
-        value={nickname}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNickname(e.target.value)}
-      />
-      <input
-        placeholder="Contraseña"
-        type="password"
-        value={contrasena}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContrasena(e.target.value)}
-      />
-      <label>
-        <input
-          type="radio"
-          checked={tipo === 'jugador'}
-          onChange={() => setTipo('jugador')}
-        />
-        Jugador
-      </label>
-      <label>
-        <input
-          type="radio"
-          checked={tipo === 'anfitrion'}
-          onChange={() => setTipo('anfitrion')}
-        />
-        Anfitrión
-      </label>
-      <button onClick={() => onRegistrar(nombreUsuario, nickname, contrasena, tipo)}>
-        Registrar
-      </button>
-      <button onClick={onVolver}>Volver</button>
+    <div className="pagina pagina--angosta">
+      <div className="titulo-fila">
+        <h1 className="titulo">Gestor de Turnos</h1>
+        <span className="subtitulo">Juegos de Rol</span>
+      </div>
+
+      {mensaje && <p className="aviso">{mensaje}</p>}
+
+      <div className="columna">
+        {modo === 'registro' && (
+          <div>
+            <label className="etiqueta" htmlFor="nombreUsuario">Nombre y apellido</label>
+            <input
+              id="nombreUsuario"
+              className="campo"
+              value={nombreUsuario}
+              onChange={(e) => setNombreUsuario(e.target.value)}
+            />
+          </div>
+        )}
+
+        <div>
+          <label className="etiqueta" htmlFor="nickname">Nickname</label>
+          <input
+            id="nickname"
+            className="campo"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="etiqueta" htmlFor="clave">Contraseña</label>
+          <input
+            id="clave"
+            className="campo"
+            type="password"
+            value={contrasena}
+            onChange={(e) => setContrasena(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && enviar()}
+          />
+        </div>
+
+        {modo === 'registro' && (
+          <div>
+            <label className="etiqueta">Tipo de cuenta</label>
+            <div className="grilla-dos">
+              <button
+                className="btn btn--toggle"
+                aria-pressed={rol === 'jugador'}
+                onClick={() => setRol('jugador')}
+              >
+                Jugador
+              </button>
+              <button
+                className="btn btn--toggle btn--toggle-xp"
+                aria-pressed={rol === 'anfitrion'}
+                onClick={() => setRol('anfitrion')}
+              >
+                Anfitrión
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button className="btn btn--oro" onClick={enviar} disabled={enviando}>
+          {enviando ? 'Enviando…' : modo === 'login' ? 'Ingresar' : 'Registrarme'}
+        </button>
+
+        <button
+          className="btn btn--fantasma"
+          onClick={() => {
+            setModo(modo === 'login' ? 'registro' : 'login');
+            setMensaje('');
+          }}
+        >
+          {modo === 'login' ? '¿No tenés cuenta? Registrate' : 'Ya tengo cuenta'}
+        </button>
+      </div>
+
+      <div className="pie">Gestor de Turnos — Juegos de Rol</div>
     </div>
   );
 }
