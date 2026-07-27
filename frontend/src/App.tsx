@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import type { Usuario } from './interfaces.ts';
-import { usuarioService, type TipoUsuario } from './services/usuario.service';
+import { usuarioService } from './services/usuario.service';
+import { authService, type Rol, type UsuarioAutenticado } from './services/auth.service';
 
 // allow JSX in environments without @types/react
 declare global {
@@ -19,45 +20,48 @@ export default function MenuApp() {
   // Los usuarios ya NO viven en memoria: se traen del backend (MySQL).
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [vista, setVista] = useState<Vista>('principal');
-  const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(null);
+  const [usuarioLogueado, setUsuarioLogueado] = useState<UsuarioAutenticado | null>(null);
   const [mensaje, setMensaje] = useState<string>('');
   const [cargando, setCargando] = useState<boolean>(true);
 
-  // Trae la lista desde la API. Se llama al montar y despues de cada registro.
+  // La lista de usuarios es una ruta protegida: solo se puede traer con sesion.
   async function refrescarUsuarios() {
     try {
       setUsuarios(await usuarioService.obtenerTodos());
     } catch (error) {
-      setMensaje(
-        'No se pudo conectar con el servidor. ¿Está corriendo el backend (npm run dev)?'
-      );
-    } finally {
-      setCargando(false);
+      setUsuarios([]);
     }
   }
 
+  // Al cargar la pagina intentamos recuperar la sesion con el token guardado
   useEffect(() => {
-    refrescarUsuarios();
+    (async () => {
+      try {
+        const perfil = await authService.perfil();
+        if (perfil) {
+          setUsuarioLogueado(perfil);
+          await refrescarUsuarios();
+        }
+      } catch {
+        setMensaje('No se pudo conectar con el servidor. ¿Está corriendo el backend?');
+      } finally {
+        setCargando(false);
+      }
+    })();
   }, []);
 
   async function registrarUsuario(
     nombreUsuario: string,
     nickname: string,
     contrasena: string,
-    tipo: TipoUsuario
+    rol: Rol
   ) {
-    const yaExiste = usuarios.some((u: Usuario) => u.nickname === nickname);
-    if (yaExiste) {
-      setMensaje('Ese nickname ya está en uso.');
-      return;
-    }
-
     try {
-      await usuarioService.registrar(nombreUsuario, nickname, contrasena, tipo);
+      // El registro devuelve el token: queda logueado automaticamente
+      const usuario = await authService.registrar(nombreUsuario, nickname, contrasena, rol);
+      setUsuarioLogueado(usuario);
       await refrescarUsuarios();
-      setMensaje(
-        `${tipo === 'jugador' ? 'Jugador' : 'Anfitrión'} registrado con éxito.`
-      );
+      setMensaje(`Bienvenido ${usuario.nickname}, te registraste como ${rol}.`);
       setVista('principal');
     } catch (error) {
       setMensaje(`No se pudo registrar: ${(error as Error).message}`);
@@ -66,17 +70,22 @@ export default function MenuApp() {
 
   async function loguearse(nickname: string, contrasena: string) {
     try {
-      const encontrado = await usuarioService.login(nickname, contrasena);
-      if (encontrado) {
-        setUsuarioLogueado(encontrado);
-        setMensaje(`Bienvenido ${encontrado.nickname}.`);
-      } else {
-        setMensaje('Usuario o contraseña incorrectos.');
-      }
+      const usuario = await authService.login(nickname, contrasena);
+      setUsuarioLogueado(usuario);
+      await refrescarUsuarios();
+      setMensaje(`Bienvenido ${usuario.nickname} (${usuario.roles.join(', ')}).`);
       setVista('principal');
     } catch (error) {
-      setMensaje(`Error al iniciar sesión: ${(error as Error).message}`);
+      setMensaje((error as Error).message);
     }
+  }
+
+  function cerrarSesion() {
+    authService.cerrarSesion();
+    setUsuarioLogueado(null);
+    setUsuarios([]);
+    setMensaje('Sesión cerrada.');
+    setVista('principal');
   }
 
   return (
@@ -87,42 +96,50 @@ export default function MenuApp() {
         <p style={{ background: '#eee', padding: '0.5rem', borderRadius: 4 }}>{mensaje}</p>
       )}
 
-      {usuarioLogueado && (
-        <p>
-          Sesión activa: <strong>{usuarioLogueado.nickname}</strong>
-        </p>
+      {cargando && <p>Cargando…</p>}
+
+      {/* CON sesion: datos del usuario y la lista (ruta protegida) */}
+      {!cargando && usuarioLogueado && (
+        <>
+          <p>
+            Sesión activa: <strong>{usuarioLogueado.nickname}</strong>{' '}
+            <em>({usuarioLogueado.roles.join(', ')})</em>{' '}
+            <button onClick={cerrarSesion}>Cerrar sesión</button>
+          </p>
+
+          <hr />
+          <p>Usuarios registrados (guardados en la base de datos):</p>
+          <ul>
+            {usuarios.map((u: Usuario) => (
+              <li key={u.idUsuario}>
+                {u.nickname} — {u.nombreUsuario}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
-      {vista === 'principal' && (
-        <PantallaPrincipal
-          onLoguearse={() => setVista('login')}
-          onRegistrarse={() => setVista('registro')}
-        />
-      )}
+      {/* SIN sesion: solo login y registro */}
+      {!cargando && !usuarioLogueado && (
+        <>
+          {vista === 'principal' && (
+            <PantallaPrincipal
+              onLoguearse={() => setVista('login')}
+              onRegistrarse={() => setVista('registro')}
+            />
+          )}
 
-      {vista === 'registro' && (
-        <PantallaRegistro
-          onRegistrar={registrarUsuario}
-          onVolver={() => setVista('principal')}
-        />
-      )}
+          {vista === 'registro' && (
+            <PantallaRegistro
+              onRegistrar={registrarUsuario}
+              onVolver={() => setVista('principal')}
+            />
+          )}
 
-      {vista === 'login' && (
-        <PantallaLogin onLoguearse={loguearse} onVolver={() => setVista('principal')} />
-      )}
-
-      <hr />
-      <p>Usuarios registrados (guardados en la base de datos):</p>
-      {cargando ? (
-        <p>Cargando…</p>
-      ) : (
-        <ul>
-          {usuarios.map((u: Usuario) => (
-            <li key={u.idUsuario}>
-              {u.nickname} — {u.nombreUsuario}
-            </li>
-          ))}
-        </ul>
+          {vista === 'login' && (
+            <PantallaLogin onLoguearse={loguearse} onVolver={() => setVista('principal')} />
+          )}
+        </>
       )}
     </div>
   );
@@ -180,7 +197,7 @@ function PantallaRegistro({
     nombreUsuario: string,
     nickname: string,
     contrasena: string,
-    tipo: 'jugador' | 'anfitrion'
+    rol: 'jugador' | 'anfitrion'
   ) => void | Promise<void>;
   onVolver: () => void;
 }) {
