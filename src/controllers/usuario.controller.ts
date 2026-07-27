@@ -19,7 +19,7 @@ export class UsuarioController {
 
   async obtenerPorId(req: Request, res: Response) {
     try {
-      const id = parseInt('${req.params.id}');
+      const id = parseInt(String(req.params.id), 10);
       const usuario = await this.usuarioService.obtenerPorId(id);
       
       if (!usuario) {
@@ -43,7 +43,7 @@ export class UsuarioController {
 
   async actualizarUsuario(req: Request, res: Response) {
     try {
-      const id = parseInt('${req.params.id}');
+      const id = parseInt(String(req.params.id), 10);
       const usuarioActualizado = await this.usuarioService.actualizarUsuario(id, req.body);
       
       if (!usuarioActualizado) {
@@ -58,7 +58,7 @@ export class UsuarioController {
 
   async eliminarUsuario(req: Request, res: Response) {
     try {
-      const id = parseInt('${req.params.id}');
+      const id = parseInt(String(req.params.id), 10);
       const eliminado = await this.usuarioService.eliminarUsuario(id);
       
       if (!eliminado) {
