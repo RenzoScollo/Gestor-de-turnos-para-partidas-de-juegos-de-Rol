@@ -7,6 +7,8 @@ import express from 'express';
 import { MikroORM, RequestContext } from '@mikro-orm/mysql';
 import config from './mikro-orm.config';
 import { crearUsuarioRouter } from './routes/usuario.routes';
+import { crearClaseRouter } from './routes/clase.routes';
+import { crearPartidaRouter } from './routes/partida.routes';
 
 // En CommonJS no se puede usar await en el nivel superior, asi que todo
 // el arranque va dentro de una funcion async.
@@ -25,6 +27,8 @@ async function main() {
 
   // Rutas de la API (a medida que hagan mas CRUDs, se montan aca)
   app.use('/api/usuarios', crearUsuarioRouter(orm.em));
+  app.use('/api/clases', crearClaseRouter(orm.em));
+  app.use('/api/partidas', crearPartidaRouter(orm.em));
 
   // Cualquier URL que no matchee ninguna ruta -> 404 en JSON
   app.use((req, res) => {
