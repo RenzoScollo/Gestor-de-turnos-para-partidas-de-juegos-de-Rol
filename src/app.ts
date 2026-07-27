@@ -7,6 +7,8 @@ import express from 'express';
 import cors from 'cors';
 import { MikroORM, RequestContext } from '@mikro-orm/mysql';
 import config from './mikro-orm.config';
+import { crearAuthRouter } from './routes/auth.routes';
+import { autenticar, exigirRol } from './middlewares/auth.middleware';
 import { crearUsuarioRouter } from './routes/usuario.routes';
 import { crearClaseRouter } from './routes/clase.routes';
 import { crearPartidaRouter } from './routes/partida.routes';
@@ -37,17 +39,25 @@ async function main() {
   // no se pisen las entidades cargadas.
   app.use((req, res, next) => RequestContext.create(orm.em, next));
 
-  // Rutas de la API — un router por entidad del modelo
-  app.use('/api/usuarios', crearUsuarioRouter(orm.em));
-  app.use('/api/clases', crearClaseRouter(orm.em));
-  app.use('/api/partidas', crearPartidaRouter(orm.em));
-  app.use('/api/tiendas', crearTiendaRouter(orm.em));
-  app.use('/api/personajes', crearPersonajeRouter(orm.em));
-  app.use('/api/objetos', crearObjetoRouter(orm.em));
-  app.use('/api/sesiones', crearSesionRouter(orm.em));
-  app.use('/api/inventarios', crearInventarioRouter(orm.em));
-  app.use('/api/misiones', crearMisionRouter(orm.em));
-  app.use('/api/personaje-sesion', crearPersonajeSesionRouter(orm.em));
+  // --- Autenticacion (publica: registro y login) ---
+  app.use('/api/auth', crearAuthRouter(orm.em));
+
+  // --- Rutas protegidas: hace falta estar logueado (token valido) ---
+  // Ademas, las que administran el mundo del juego (clases, tiendas y
+  // objetos del catalogo) exigen rol anfitrion: son los dos niveles de
+  // acceso que pide la catedra.
+  app.use('/api/usuarios', autenticar, crearUsuarioRouter(orm.em));
+  app.use('/api/clases', autenticar, exigirRol('anfitrion'), crearClaseRouter(orm.em));
+  app.use('/api/tiendas', autenticar, exigirRol('anfitrion'), crearTiendaRouter(orm.em));
+  app.use('/api/objetos', autenticar, exigirRol('anfitrion'), crearObjetoRouter(orm.em));
+
+  // El resto: cualquier usuario autenticado (jugador o anfitrion)
+  app.use('/api/partidas', autenticar, crearPartidaRouter(orm.em));
+  app.use('/api/personajes', autenticar, crearPersonajeRouter(orm.em));
+  app.use('/api/sesiones', autenticar, crearSesionRouter(orm.em));
+  app.use('/api/inventarios', autenticar, crearInventarioRouter(orm.em));
+  app.use('/api/misiones', autenticar, crearMisionRouter(orm.em));
+  app.use('/api/personaje-sesion', autenticar, crearPersonajeSesionRouter(orm.em));
 
   // Cualquier URL que no matchee ninguna ruta -> 404 en JSON
   app.use((req, res) => {
