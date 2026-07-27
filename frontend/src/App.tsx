@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { useState } from 'react';
-import type { Usuario, Jugador, Anfitrion } from './interfaces.ts';
+import { useEffect, useState } from 'react';
+import type { Usuario } from './interfaces.ts';
+import { usuarioService, type TipoUsuario } from './services/usuario.service';
 
 // allow JSX in environments without @types/react
 declare global {
@@ -10,33 +11,40 @@ declare global {
     }
   }
 }
- 
+
 // Vista actual del "menú" (reemplaza el while + switch de la consola)
 type Vista = 'principal' | 'registro' | 'login';
- 
-let proximoId = 1; // simula el autoincrement de idUsuario (CP) hasta que haya backend
- 
+
 export default function MenuApp() {
-  // Modelo relacional: tres listas separadas, relacionadas por idUsuario.
+  // Los usuarios ya NO viven en memoria: se traen del backend (MySQL).
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [jugadores, setJugadores] = useState<Jugador[]>([]);
-  const [anfitriones, setAnfitriones] = useState<Anfitrion[]>([]);
   const [vista, setVista] = useState<Vista>('principal');
   const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(null);
   const [mensaje, setMensaje] = useState<string>('');
+  const [cargando, setCargando] = useState<boolean>(true);
 
-  // El rol se deduce mirando en que tabla esta el usuario.
-  function rolDe(idUsuario: number): 'jugador' | 'anfitrión' | 'usuario' {
-    if (jugadores.some((j: Jugador) => j.idUsuario === idUsuario)) return 'jugador';
-    if (anfitriones.some((a: Anfitrion) => a.idUsuario === idUsuario)) return 'anfitrión';
-    return 'usuario';
+  // Trae la lista desde la API. Se llama al montar y despues de cada registro.
+  async function refrescarUsuarios() {
+    try {
+      setUsuarios(await usuarioService.obtenerTodos());
+    } catch (error) {
+      setMensaje(
+        'No se pudo conectar con el servidor. ¿Está corriendo el backend (npm run dev)?'
+      );
+    } finally {
+      setCargando(false);
+    }
   }
 
-  function registrarUsuario(
+  useEffect(() => {
+    refrescarUsuarios();
+  }, []);
+
+  async function registrarUsuario(
     nombreUsuario: string,
     nickname: string,
     contrasena: string,
-    tipo: 'jugador' | 'anfitrion'
+    tipo: TipoUsuario
   ) {
     const yaExiste = usuarios.some((u: Usuario) => u.nickname === nickname);
     if (yaExiste) {
@@ -44,79 +52,78 @@ export default function MenuApp() {
       return;
     }
 
-    const idUsuario = proximoId++;
-    setUsuarios((prev: Usuario[]) => [
-      ...prev,
-      { idUsuario, nombreUsuario, contrasena, imagen: '', nickname },
-    ]);
-
-    if (tipo === 'jugador') {
-      setJugadores((prev: Jugador[]) => [...prev, { idUsuario, estado: true }]);
-    } else {
-      setAnfitriones((prev: Anfitrion[]) => [
-        ...prev,
-        { idUsuario, cantPartidasActuales: 0, karma: 0 },
-      ]);
+    try {
+      await usuarioService.registrar(nombreUsuario, nickname, contrasena, tipo);
+      await refrescarUsuarios();
+      setMensaje(
+        `${tipo === 'jugador' ? 'Jugador' : 'Anfitrión'} registrado con éxito.`
+      );
+      setVista('principal');
+    } catch (error) {
+      setMensaje(`No se pudo registrar: ${(error as Error).message}`);
     }
-
-    setMensaje(`${tipo === 'jugador' ? 'Jugador' : 'Anfitrión'} registrado con éxito.`);
-    setVista('principal');
   }
 
-  function loguearse(nickname: string, contrasena: string) {
-    const encontrado = usuarios.find(
-      (u: Usuario) => u.nickname === nickname && u.contrasena === contrasena
-    );
-    if (encontrado) {
-      setUsuarioLogueado(encontrado);
-      setMensaje(`Bienvenido ${rolDe(encontrado.idUsuario)} ${encontrado.nickname}.`);
-    } else {
-      setMensaje('Usuario no encontrado.');
+  async function loguearse(nickname: string, contrasena: string) {
+    try {
+      const encontrado = await usuarioService.login(nickname, contrasena);
+      if (encontrado) {
+        setUsuarioLogueado(encontrado);
+        setMensaje(`Bienvenido ${encontrado.nickname}.`);
+      } else {
+        setMensaje('Usuario o contraseña incorrectos.');
+      }
+      setVista('principal');
+    } catch (error) {
+      setMensaje(`Error al iniciar sesión: ${(error as Error).message}`);
     }
-    setVista('principal');
   }
- 
+
   return (
     <div style={{ maxWidth: 420, margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h2>Gestor de turnos — juegos de rol</h2>
- 
+
       {mensaje && (
         <p style={{ background: '#eee', padding: '0.5rem', borderRadius: 4 }}>{mensaje}</p>
       )}
- 
+
       {usuarioLogueado && (
         <p>
           Sesión activa: <strong>{usuarioLogueado.nickname}</strong>
         </p>
       )}
- 
+
       {vista === 'principal' && (
         <PantallaPrincipal
           onLoguearse={() => setVista('login')}
           onRegistrarse={() => setVista('registro')}
         />
       )}
- 
+
       {vista === 'registro' && (
         <PantallaRegistro
           onRegistrar={registrarUsuario}
           onVolver={() => setVista('principal')}
         />
       )}
- 
+
       {vista === 'login' && (
         <PantallaLogin onLoguearse={loguearse} onVolver={() => setVista('principal')} />
       )}
- 
+
       <hr />
-      <p>Usuarios registrados (en memoria, sin persistencia):</p>
-      <ul>
-        {usuarios.map((u: Usuario) => (
-          <li key={u.idUsuario}>
-            {u.nickname} — {rolDe(u.idUsuario)} 
-          </li>
-        ))}
-      </ul>
+      <p>Usuarios registrados (guardados en la base de datos):</p>
+      {cargando ? (
+        <p>Cargando…</p>
+      ) : (
+        <ul>
+          {usuarios.map((u: Usuario) => (
+            <li key={u.idUsuario}>
+              {u.nickname} — {u.nombreUsuario}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -140,7 +147,7 @@ function PantallaLogin({
   onLoguearse,
   onVolver,
 }: {
-  onLoguearse: (nickname: string, contrasena: string) => void;
+  onLoguearse: (nickname: string, contrasena: string) => void | Promise<void>;
   onVolver: () => void;
 }) {
   const [nickname, setNickname] = useState('');
@@ -174,7 +181,7 @@ function PantallaRegistro({
     nickname: string,
     contrasena: string,
     tipo: 'jugador' | 'anfitrion'
-  ) => void;
+  ) => void | Promise<void>;
   onVolver: () => void;
 }) {
   const [nombreUsuario, setNombreUsuario] = useState('');

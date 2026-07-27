@@ -4,6 +4,7 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import { MikroORM, RequestContext } from '@mikro-orm/mysql';
 import config from './mikro-orm.config';
 import { crearUsuarioRouter } from './routes/usuario.routes';
@@ -23,6 +24,10 @@ async function main() {
   const orm = await MikroORM.init(config);
 
   const app = express();
+
+  // Permite que el frontend (Vite, en otro puerto) llame a esta API.
+  // Sin esto el navegador bloquea las peticiones por CORS.
+  app.use(cors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' }));
 
   // Parsea el body JSON de los POST/PUT
   app.use(express.json());

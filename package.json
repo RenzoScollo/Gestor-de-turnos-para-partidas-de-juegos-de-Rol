@@ -12,6 +12,7 @@
     "@mikro-orm/core": "^6.6.16",
     "@mikro-orm/mysql": "^6.6.16",
     "@types/express": "^5.0.6",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mysql2": "^3.22.6",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@mikro-orm/cli": "^6.6.16",
+    "@types/cors": "^2.8.19",
     "@types/node": "^26.1.1",
     "@types/prompt-sync": "^4.2.3",
     "@types/react": "^19.2.17",
