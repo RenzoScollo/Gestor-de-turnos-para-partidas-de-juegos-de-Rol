@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { ObjetoController } from '../controllers/objeto.controller';
 import { ObjetoService } from '../services/objeto.service';
 import { EntityManager } from '@mikro-orm/core';
+import { validate, idParamSchema } from '../middlewares/validate';
+import { crearObjetoSchema, actualizarObjetoSchema } from '../schemas/objeto.schema';
 
 export function crearObjetoRouter(em: EntityManager): Router {
   const router = Router();
@@ -12,10 +14,27 @@ export function crearObjetoRouter(em: EntityManager): Router {
 
   // Vinculamos los endpoints HTTP con los métodos del controlador
   router.get('/', (req, res) => objetoController.obtenerTodos(req, res));
-  router.get('/:id', (req, res) => objetoController.obtenerPorId(req, res));
-  router.post('/', (req, res) => objetoController.crear(req, res));
-  router.put('/:id', (req, res) => objetoController.actualizar(req, res));
-  router.delete('/:id', (req, res) => objetoController.eliminar(req, res));
+  router.get(
+    '/:id',
+    validate({ schema: idParamSchema, ubicacion: 'params' }),
+    (req, res) => objetoController.obtenerPorId(req, res)
+  );
+  router.post(
+    '/',
+    validate({ schema: crearObjetoSchema }),
+    (req, res) => objetoController.crear(req, res)
+  );
+  router.put(
+    '/:id',
+    validate({ schema: idParamSchema, ubicacion: 'params' }),
+    validate({ schema: actualizarObjetoSchema }),
+    (req, res) => objetoController.actualizar(req, res)
+  );
+  router.delete(
+    '/:id',
+    validate({ schema: idParamSchema, ubicacion: 'params' }),
+    (req, res) => objetoController.eliminar(req, res)
+  );
 
   return router;
 }

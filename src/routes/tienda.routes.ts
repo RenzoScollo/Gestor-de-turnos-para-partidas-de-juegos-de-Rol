@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { TiendaController } from '../controllers/tienda.controller';
 import { TiendaService } from '../services/tienda.service';
 import { EntityManager } from '@mikro-orm/core';
+import { validate, idParamSchema } from '../middlewares/validate';
+import { crearTiendaSchema, actualizarTiendaSchema } from '../schemas/tienda.schema';
 
 export function crearTiendaRouter(em: EntityManager): Router {
   const router = Router();
@@ -12,10 +14,27 @@ export function crearTiendaRouter(em: EntityManager): Router {
 
   // Vinculamos los endpoints HTTP con los métodos del controlador
   router.get('/', (req, res) => tiendaController.obtenerTodos(req, res));
-  router.get('/:id', (req, res) => tiendaController.obtenerPorId(req, res));
-  router.post('/', (req, res) => tiendaController.crear(req, res));
-  router.put('/:id', (req, res) => tiendaController.actualizar(req, res));
-  router.delete('/:id', (req, res) => tiendaController.eliminar(req, res));
+  router.get(
+    '/:id',
+    validate({ schema: idParamSchema, ubicacion: 'params' }),
+    (req, res) => tiendaController.obtenerPorId(req, res)
+  );
+  router.post(
+    '/',
+    validate({ schema: crearTiendaSchema }),
+    (req, res) => tiendaController.crear(req, res)
+  );
+  router.put(
+    '/:id',
+    validate({ schema: idParamSchema, ubicacion: 'params' }),
+    validate({ schema: actualizarTiendaSchema }),
+    (req, res) => tiendaController.actualizar(req, res)
+  );
+  router.delete(
+    '/:id',
+    validate({ schema: idParamSchema, ubicacion: 'params' }),
+    (req, res) => tiendaController.eliminar(req, res)
+  );
 
   return router;
 }
