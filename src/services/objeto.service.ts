@@ -1,5 +1,6 @@
 import { EntityManager } from '@mikro-orm/core';
 import { Objeto } from '../entities/Objeto.entity';
+import { Inventario } from '../entities/Inventario.entity';
 
 export class ObjetoService {
   private em: EntityManager;
@@ -22,7 +23,12 @@ export class ObjetoService {
   }
 
   async crear(data: any) {
-    const objeto = this.em.create(Objeto, data);
+    // inventario es CLAVE COMPUESTA y OPCIONAL: si vino, getReference() lo
+    // trata como una referencia al Inventario existente (no como datos para
+    // crear un Inventario nuevo, que fallaria por faltarle cantidadEspacio).
+    const { inventario, ...resto } = data;
+    const inventarioRef = inventario ? this.em.getReference(Inventario, inventario) : null;
+    const objeto = this.em.create(Objeto, { ...resto, inventario: inventarioRef });
     await this.em.flush();
     return objeto;
   }

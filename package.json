@@ -6,6 +6,7 @@
     "start": "node dist/app.js",
     "build": "tsc",
     "schema:create": "ts-node ./node_modules/@mikro-orm/cli/cli.js schema:create --run",
+    "schema:update": "ts-node ./node_modules/@mikro-orm/cli/cli.js schema:update --run",
     "schema:dump": "ts-node src/valida-entities.ts",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns=integration",

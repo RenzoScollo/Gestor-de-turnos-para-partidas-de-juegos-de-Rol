@@ -1,5 +1,6 @@
 import { EntityManager } from '@mikro-orm/core';
 import { PersonajeSesion } from '../entities/PersonajeSesion.entity';
+import { Sesion } from '../entities/Sesion.entity';
 
 // Tabla de union Personaje/Sesion (historial de asistencia).
 // CLAVE COMPUESTA TRIPLE: (idPersonaje) + (idPartida, numSesion) de la sesion.
@@ -23,8 +24,14 @@ export class PersonajeSesionService {
   }
 
   async crear(data: any) {
-    // El body debe traer: personaje (idPersonaje), sesion { partida, numSesion } y dioKarma
-    const registro = this.em.create(PersonajeSesion, data);
+    // El body trae: personaje (idPersonaje), sesion { partida, numSesion }, dioKarma, orden.
+    // sesion es una CLAVE COMPUESTA: si se le pasa el objeto {partida, numSesion}
+    // tal cual a em.create(), MikroORM intenta CREAR una Sesion nueva (y falla,
+    // porque le faltan sus campos NOT NULL). getReference() la trata como lo
+    // que es: una referencia a la Sesion que YA existe.
+    const { sesion, ...resto } = data;
+    const sesionRef = this.em.getReference(Sesion, sesion);
+    const registro = this.em.create(PersonajeSesion, { ...resto, sesion: sesionRef });
     await this.em.flush();
     return registro;
   }

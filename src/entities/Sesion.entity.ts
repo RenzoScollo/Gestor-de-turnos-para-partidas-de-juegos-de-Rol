@@ -1,5 +1,6 @@
 import { Entity, ManyToOne, PrimaryKey, PrimaryKeyProp, Property } from '@mikro-orm/core';
 import { Partida } from './Partida.entity';
+import { Personaje } from './Personaje.entity';
 
 // CP compuesta: (idPartida, numSesion). La partida es parte de la clave.
 @Entity({ tableName: 'sesiones' })
@@ -20,6 +21,11 @@ export class Sesion {
   // 1 = en curso, 2 = finalizada
   @Property({ type: 'number' })
   estadoSesion!: number;
+
+  // Que personaje tiene el turno ahora mismo. Null si el turno todavia no
+  // se inicio. El orden de la ronda vive en PersonajeSesion.orden.
+  @ManyToOne({ entity: () => Personaje, fieldName: 'idPersonajeTurnoActual', nullable: true })
+  turnoActual?: Personaje | null;
 
   [PrimaryKeyProp]?: ['partida', 'numSesion'];
 }

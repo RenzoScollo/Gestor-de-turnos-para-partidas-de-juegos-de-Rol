@@ -15,9 +15,12 @@ const partida = Joi.number().integer().positive();
 export const crearPersonajeSchema = Joi.object({
   nombreFicticio: nombreFicticio.required(),
   raza: raza.required(),
-  xp: xp.optional(),
-  nivel: nivel.optional(),
-  dinero: dinero.optional(),
+  // La entity exige estos 3 campos (NOT NULL, sin default en la base), asi
+  // que si no vienen en el body hay que rellenarlos aca: un personaje
+  // arranca en nivel 1, sin xp ni dinero.
+  xp: xp.optional().default(0),
+  nivel: nivel.optional().default(1),
+  dinero: dinero.optional().default(0),
   clase: clase.required(),
   jugador: jugador.required(),
   partida: partida.required(),

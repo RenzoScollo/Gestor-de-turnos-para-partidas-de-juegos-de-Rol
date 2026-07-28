@@ -1,5 +1,6 @@
 import { EntityManager } from '@mikro-orm/core';
 import { Mision } from '../entities/Mision.entity';
+import { Sesion } from '../entities/Sesion.entity';
 
 // Mision tiene CLAVE COMPUESTA TRIPLE (idPartida, numSesion, numMision):
 // pertenece a una Sesion (que ya tiene clave doble) + su propio numero.
@@ -23,8 +24,12 @@ export class MisionService {
   }
 
   async crear(data: any) {
-    // El body debe traer: sesion { partida, numSesion }, numMision y los datos propios
-    const mision = this.em.create(Mision, data);
+    // El body trae: sesion { partida, numSesion }, numMision y los datos propios.
+    // sesion es CLAVE COMPUESTA: getReference() la trata como una referencia a
+    // la Sesion existente, no como datos para crear una Sesion nueva.
+    const { sesion, ...resto } = data;
+    const sesionRef = this.em.getReference(Sesion, sesion);
+    const mision = this.em.create(Mision, { ...resto, sesion: sesionRef });
     await this.em.flush();
     return mision;
   }

@@ -18,6 +18,7 @@ import { crearSesionRouter } from './routes/sesion.routes';
 import { crearInventarioRouter } from './routes/inventario.routes';
 import { crearMisionRouter } from './routes/mision.routes';
 import { crearPersonajeSesionRouter } from './routes/personajeSesion.routes';
+import { crearTurnoRouter } from './routes/turno.routes';
 
 export interface AppYOrm {
   app: Express;
@@ -57,6 +58,10 @@ export async function buildApp(): Promise<AppYOrm> {
   app.use('/api/inventarios', autenticar, crearInventarioRouter(orm.em));
   app.use('/api/misiones', autenticar, crearMisionRouter(orm.em));
   app.use('/api/personaje-sesion', autenticar, crearPersonajeSesionRouter(orm.em));
+
+  // Gestor de turnos: quien juega ahora en una sesion, e iniciar/avanzar el
+  // turno (estas dos ultimas ademas exigen ser el anfitrion dueño de la partida).
+  app.use('/api/sesiones/:idPartida/:numSesion/turno', autenticar, crearTurnoRouter(orm.em));
 
   // Cualquier URL que no matchee ninguna ruta -> 404 en JSON
   app.use((req, res) => {
