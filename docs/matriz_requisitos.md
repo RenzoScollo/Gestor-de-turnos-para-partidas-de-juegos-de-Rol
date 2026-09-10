@@ -34,7 +34,7 @@ Las [condiciones de la cátedra](https://github.com/utnfrrodsw/tp) requieren sep
 | --- | --- | --- |
 | Arquitectura | React/Vite separado de Express; servicios/DTO/entidades; MikroORM y MySQL | Revisar consistencia final de contratos con el código de entrega |
 | Autenticación | Cookie, `auth.ts`, autorización backend y layout protegido; tests de sesión | Auditar permisos visuales de cada operación |
-| Tests | 76 backend, 50 frontend, 23 MySQL y 6 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
+| Tests | 76 backend, 54 frontend, 23 MySQL y 6 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
 | Responsive/UX | Once pantallas principales pobladas sin desborde general a 375/768/1440; Enter y salto al contenido; corrección visual en Personajes | Revisar formularios/detalles, contrastes y modo oscuro; revisar estrategia mobile-first |
 | Instalación | Guía y scripts; actualización `esUnico` documentada | Ensayo limpio completo con la versión final |
 | Propuesta/modelo | Enlaces corregidos y modelo actual basado en entidades | Cotejar con documento del grupo y validación docente |

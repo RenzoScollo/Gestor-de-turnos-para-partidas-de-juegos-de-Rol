@@ -305,6 +305,7 @@ export default function PersonajesPage() {
         personajeSeleccionadoId={seleccionado?.idPersonaje}
         cargando={cargando}
         onSeleccionar={(p) => setSeleccionado(p)}
+        puedeGestionar={p => esJugador && p.idUsuarioJugador === userId}
         onEditar={esJugador ? (p) => { if (p.idUsuarioJugador === userId) abrirFormularioEditar(p); } : undefined}
         onEliminar={esJugador ? (id) => {
           const p = personajes.find((x) => x.idPersonaje === id);

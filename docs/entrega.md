@@ -104,3 +104,9 @@ La auditoría del 10 de septiembre de 2026 detectó alertas en `mysql2` (incluid
 `npm ci` reinstaló correctamente desde el lockfile y `npm ls mysql2 qs` confirmó una sola versión del driver, sin dependencias inválidas. La auditoría de ambos proyectos informó cero vulnerabilidades conocidas en esa consulta. Esto no equivale a una garantía de seguridad ni reemplaza revisiones posteriores. CI ejecuta auditoría con umbral `moderate` para señalar nuevas alertas.
 
 La [ejecución remota 34478165867](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34478165867) aprobó el commit anterior a esta actualización de dependencias; la nueva versión requiere su propia ejecución.
+
+## Acciones visibles de personajes
+
+El listado mostraba botones de editar/eliminar también en tarjetas de personajes ajenos; el callback impedía la operación, pero dejaba controles sin efecto. La página ahora informa el permiso por personaje y el componente solo ofrece acciones autorizadas. Se mantiene el control de propiedad del servidor, independiente de esta mejora visual.
+
+Las tarjetas también responden a Enter/Espacio y exponen su selección. El teclado de un botón interno no activa accidentalmente la tarjeta. Cuatro tests nuevos del componente cubren permisos y teclado; total frontend: 54. El recorrido E2E verifica las acciones del propietario y la ausencia de acciones para el anfitrión sobre personajes ajenos.

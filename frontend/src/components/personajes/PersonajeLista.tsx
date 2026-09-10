@@ -10,6 +10,7 @@ export interface PersonajeListaProps {
   onEditar?: (personaje: Personaje) => void;
   onEliminar?: (idPersonaje: number) => void;
   onNuevo?: () => void;
+  puedeGestionar?: (personaje: Personaje) => boolean;
   cargando?: boolean;
 }
 
@@ -21,6 +22,7 @@ export default function PersonajeLista({
   onEditar,
   onEliminar,
   onNuevo,
+  puedeGestionar = () => true,
   cargando = false,
 }: PersonajeListaProps) {
   const [filtroClase, setFiltroClase] = useState<number | 'todas'>('todas');
@@ -106,6 +108,7 @@ export default function PersonajeLista({
         <div className="personaje-grid">
           {personajesFiltrados.map((p) => {
             const esSeleccionado = personajeSeleccionadoId === p.idPersonaje;
+            const gestionPermitida = puedeGestionar(p);
             const nombreClase = (p as any).claseNombre || obtenerNombreClase(p.idClase);
             const jugadorNombre = (p as any).jugadorNombre || `Jugador #${p.idUsuarioJugador}`;
 
@@ -114,8 +117,16 @@ export default function PersonajeLista({
                 key={p.idPersonaje}
                 className={`personaje-card ${esSeleccionado ? 'seleccionado' : ''}`}
                 onClick={() => onSeleccionar?.(p)}
+                onKeyDown={event => {
+                  if (event.target !== event.currentTarget || !onSeleccionar) return;
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSeleccionar(p);
+                  }
+                }}
                 role={onSeleccionar ? 'button' : undefined}
                 tabIndex={onSeleccionar ? 0 : undefined}
+                aria-pressed={onSeleccionar ? esSeleccionado : undefined}
               >
                 <div>
                   <div className="personaje-top">
@@ -149,7 +160,7 @@ export default function PersonajeLista({
                   </div>
                 </div>
 
-                {(onEditar || onEliminar) && (
+                {gestionPermitida && (onEditar || onEliminar) && (
                   <div className="personaje-acciones">
                     {onEditar && (
                       <button

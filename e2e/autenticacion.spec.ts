@@ -186,6 +186,17 @@ test('dos usuarios completan juego, recompensas, karma y comercio con inventario
     await player.getByRole('button', { name: 'Crear Personaje', exact: true }).click();
     await expect(player.getByRole('status')).toContainText('Personaje creado correctamente');
 
+    const ownCharacter = player.locator('.personaje-card').filter({ hasText: 'Arwen E2E' });
+    await expect(ownCharacter.getByRole('button', { name: 'Editar', exact: true })).toBeVisible();
+    for (const foreign of await player.locator('.personaje-card').filter({ hasNotText: 'Arwen E2E' }).all()) {
+      await expect(foreign.getByRole('button', { name: 'Editar', exact: true })).toHaveCount(0);
+      await expect(foreign.getByRole('button', { name: 'Eliminar', exact: true })).toHaveCount(0);
+    }
+    await host.goto('/characters');
+    await expect(host.locator('.personaje-card').filter({ hasText: 'Arwen E2E' })).toBeVisible();
+    await expect(host.getByRole('button', { name: 'Editar', exact: true })).toHaveCount(0);
+    await expect(host.getByRole('button', { name: 'Eliminar', exact: true })).toHaveCount(0);
+
     await host.goto('/sessions');
     await host.getByRole('button', { name: 'Crear', exact: true }).click();
     await host.getByRole('combobox', { name: 'Partida', exact: true }).selectOption(gameId!);
