@@ -58,6 +58,10 @@ body {
   margin: 0;
 }
 
+*, *::before, *::after { box-sizing: border-box; }
+:focus-visible { outline: 3px solid #1976d2; outline-offset: 3px; }
+input, select, textarea { max-width: 100%; }
+
 h1,
 h2 {
   font-family: var(--heading);

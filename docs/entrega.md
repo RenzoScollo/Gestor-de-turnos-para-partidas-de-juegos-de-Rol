@@ -44,10 +44,11 @@ Verificación local: compilación correcta, 44 pruebas aprobadas y lint sin erro
 
 ## Pruebas de navegador
 
-Tres recorridos locales aprobados con Chromium, Express y MySQL reales, sin reemplazar las respuestas de la API:
+Cuatro recorridos locales aprobados con Chromium, Express y MySQL reales, sin reemplazar las respuestas de la API:
 
 - Registro de anfitrión, login, creación de partida y sesión planificada, persistencia después de recargar, invalidación de cookie y redirección al login ante un `401`.
 - Cierre de sesión desde el botón y bloqueo del acceso posterior a una ruta privada.
+- Ingreso con Enter, once enlaces navegables con teclado, indicación de página activa, salto al contenido y ausencia de desborde horizontal en Partidas y Dashboard a 375, 768 y 1440 píxeles.
 - Dos cuentas separadas: el anfitrión crea clase y partida; el jugador crea su personaje; el anfitrión inicia una sesión con ese participante, completa una misión con 50 XP y 100 monedas, finaliza la sesión y recibe karma +1 del jugador. Se verifica que no se ofrece completar de nuevo la misión y que el personaje conserva 50 XP y 200 monedas tras recargar.
 - Dentro del tercer recorrido se crea una tienda y un objeto de valor 40, se compra (saldo 160), se crea un segundo inventario y se mueve el objeto a su posición 2. Luego se vende por 28 (70 %), se comprueba que sale del inventario y que el saldo persistido queda en 188.
 
@@ -69,3 +70,9 @@ npm run test:e2e
 El usuario de MySQL necesita permiso para crear y eliminar bases de prueba. La suite exige `TEST_DB_PORT` explícito, crea una base `rpg_e2e_<identificador aleatorio>` y elimina únicamente esa base al finalizar, incluso ante fallos de pruebas. Nunca reutiliza `DB_NAME`. Un corte forzado del proceso puede impedir la limpieza: revisar cualquier base residual antes de eliminarla manualmente.
 
 Los puertos 5174 y 3101 deben estar libres. Vite mantiene su destino habitual `localhost:3000` al ejecutar la aplicación normalmente; solo el entorno E2E establece `API_PROXY_TARGET`. Las capturas y trazas de fallos quedan en `test-results/`, excluido de Git.
+
+## Accesibilidad y responsive: revisión parcial
+
+El menú usa enlaces reales (`NavLink`) en lugar de elementos de lista con clic, expone la página actual y tiene un nombre accesible. Incluye un enlace inicial para saltar al contenido principal y un indicador de foco visible. Login y Registro usan formularios con etiquetas asociadas y autocompletado; admiten envío con Enter. Los errores de ingreso ya no desaparecen automáticamente a los tres segundos.
+
+Las tarjetas del Dashboard se adaptan al ancho disponible. Se revisaron capturas del Dashboard en los tres tamaños indicados; el aviso global dejó de superponerse al encabezado. Estas comprobaciones no certifican accesibilidad completa ni cubren todavía todos los CRUD, el modo oscuro o todas las combinaciones de datos.

@@ -18,14 +18,6 @@ export default function LoginPage() {
     }
   }, [usuarioLogueado, navigate]);
 
-  // Auto-limpiar error después de 3 segundos
-  useEffect(() => {
-    if (errorLogin) {
-      const timer = setTimeout(() => setErrorLogin(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [errorLogin]);
-
   const handleLogin = async () => {
     if (!nickname || !contrasena) {
       setErrorLogin('Completa todos los campos');
@@ -39,7 +31,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: '2rem auto', fontFamily: 'sans-serif' }}>
+    <main style={{ maxWidth: 420, margin: '2rem auto', padding: '1rem', fontFamily: 'sans-serif' }}>
       <h2>Iniciar Sesión</h2>
 
       {errorLogin && (
@@ -50,30 +42,37 @@ export default function LoginPage() {
         />
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form onSubmit={e => { e.preventDefault(); void handleLogin(); }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <label htmlFor="login-nickname">Nickname</label>
         <input
+          id="login-nickname"
+          autoComplete="username"
           placeholder="Nickname"
           value={nickname}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNickname(e.target.value)}
           style={{ padding: '0.5rem', fontSize: '1rem' }}
         />
+        <label htmlFor="login-password">Contraseña</label>
         <input
+          id="login-password"
+          autoComplete="current-password"
           placeholder="Contraseña"
           type="password"
           value={contrasena}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContrasena(e.target.value)}
           style={{ padding: '0.5rem', fontSize: '1rem' }}
         />
-        <button disabled={busy} onClick={handleLogin} style={{ padding: '0.5rem', fontSize: '1rem', color: 'black' }}>
+        <button type="submit" disabled={busy} style={{ padding: '0.5rem', fontSize: '1rem', color: '#111', background: '#eee' }}>
           Ingresar
         </button>
         <button
+          type="button"
           onClick={() => navigate('/register')}
-          style={{ padding: '0.5rem', fontSize: '1rem', background: '#2f2f2f' }}
+          style={{ padding: '0.5rem', fontSize: '1rem', background: '#2f2f2f', color: 'white' }}
         >
           Ir a Registro
         </button>
-      </div>
-    </div>
+      </form>
+    </main>
   );
 }

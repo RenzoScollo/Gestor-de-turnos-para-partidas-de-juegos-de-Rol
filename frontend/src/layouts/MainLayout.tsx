@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useLocation, Navigate, Link } from 'react-router-dom';
+import { Outlet, useNavigate, Navigate, NavLink } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { Alert } from '../components/ui';
 import './MainLayout.css';
@@ -6,7 +6,6 @@ import './MainLayout.css';
 export default function MainLayout() {
   const { usuarioLogueado, logout, mensaje, limpiarMensaje, cargandoSesion } = useUser();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleLogout = async () => {
     try { await logout(); navigate('/login'); }
@@ -19,9 +18,10 @@ export default function MainLayout() {
 
   return (
     <div className="main-layout">
+      <a className="skip-link" href="#contenido">Saltar al contenido</a>
       {/* Alert global */}
       {mensaje && (
-        <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 999 }}>
+        <div className="global-alert">
           <Alert
             type="success"
             message={mensaje}
@@ -33,9 +33,9 @@ export default function MainLayout() {
       )}
 
       {/* Navbar */}
-      <nav className="navbar">
+      <header className="navbar">
         <div className="navbar-brand">
-          <h1>Gestor de Turnos - Juegos de Rol</h1>
+          <p>Gestor de Turnos - Juegos de Rol</p>
         </div>
         <div className="navbar-user">
           <span>Hola, {usuarioLogueado.nickname}</span>
@@ -43,48 +43,25 @@ export default function MainLayout() {
             Cerrar Sesión
           </button>
         </div>
-      </nav>
+      </header>
 
       {/* Sidebar */}
       <div className="layout-container">
         <aside className="sidebar">
+          <nav aria-label="Navegación principal">
           <ul className="nav-menu">
-            {[['/classes', 'Clases'], ['/stores', 'Tiendas'], ['/sessions', 'Sesiones'], ['/missions', 'Misiones'], ['/inventory', 'Inventarios'], ['/profiles', 'Perfiles']].map(([path, label]) => <li key={path}><Link to={path}>{label}</Link></li>)}
-            <li
-              onClick={() => navigate('/dashboard')}
-              className={location.pathname === '/dashboard' ? 'active' : ''}
-            >
-              📊 Dashboard
-            </li>
-            <li
-              onClick={() => navigate('/users')}
-              className={location.pathname === '/users' ? 'active' : ''}
-            >
-              👥 Usuarios
-            </li>
-            <li
-              onClick={() => navigate('/games')}
-              className={location.pathname === '/games' ? 'active' : ''}
-            >
-              🎮 Partidas
-            </li>
-            <li
-              onClick={() => navigate('/objects')}
-              className={location.pathname === '/objects' ? 'active' : ''}
-            >
-              🎒 Objetos
-            </li>
-            <li
-              onClick={() => navigate('/characters')}
-              className={location.pathname === '/characters' ? 'active' : ''}
-            >
-              ⚔️ Personajes
-            </li>
+            {[
+              ['/dashboard', 'Dashboard'], ['/users', 'Usuarios'], ['/games', 'Partidas'],
+              ['/characters', 'Personajes'], ['/classes', 'Clases'], ['/stores', 'Tiendas'],
+              ['/objects', 'Objetos'], ['/sessions', 'Sesiones'], ['/missions', 'Misiones'],
+              ['/inventory', 'Inventarios'], ['/profiles', 'Perfiles'],
+            ].map(([path, label]) => <li key={path}><NavLink to={path}>{label}</NavLink></li>)}
           </ul>
+          </nav>
         </aside>
 
         {/* Main Content */}
-        <main className="main-content">
+        <main id="contenido" className="main-content" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

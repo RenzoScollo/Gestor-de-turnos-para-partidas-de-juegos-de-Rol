@@ -54,6 +54,37 @@ test('cerrar sesión impide volver a las páginas privadas', async ({ page }) =>
   await expect(page).toHaveURL(/\/login$/);
 });
 
+test('login con Enter, navegación por teclado y menú sin desborde en tres tamaños', async ({ page }) => {
+  await registrar(page, 'teclado_e2e');
+  await page.getByLabel('Nickname', { exact: true }).fill('teclado_e2e');
+  await page.getByLabel('Contraseña', { exact: true }).fill('PruebaSegura123');
+  await page.getByLabel('Contraseña', { exact: true }).press('Enter');
+  await expect(page).toHaveURL(/\/dashboard$/);
+  const navigation = page.getByRole('navigation', { name: 'Navegación principal' });
+  await expect(navigation.getByRole('link')).toHaveCount(11);
+  for (const width of [375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const games = navigation.getByRole('link', { name: 'Partidas', exact: true });
+    await games.focus();
+    await expect(games).toBeFocused();
+    await games.press('Enter');
+    await expect(page).toHaveURL(/\/games$/);
+    await expect(games).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('heading', { name: 'Partidas', exact: true })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await navigation.getByRole('link', { name: 'Dashboard', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath(`dashboard-${width}.png`), fullPage: true });
+  }
+  await page.goto('/games');
+  await expect(page.getByRole('heading', { name: 'Partidas', exact: true })).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Saltar al contenido' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('main')).toBeFocused();
+});
+
 test('dos usuarios completan juego, recompensas, karma y comercio con inventarios', async ({ page: host, browser }) => {
   const player = await browser.newPage({ baseURL: 'http://127.0.0.1:5174' });
   try {

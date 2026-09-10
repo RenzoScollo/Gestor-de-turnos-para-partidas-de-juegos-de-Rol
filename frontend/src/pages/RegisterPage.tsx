@@ -20,7 +20,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: '2rem auto', fontFamily: 'sans-serif' }}>
+    <main style={{ maxWidth: 420, margin: '2rem auto', padding: '1rem', fontFamily: 'sans-serif' }}>
       <h2>Registrarse</h2>
       {error && <p role="alert">{error}</p>}
 
@@ -30,20 +30,29 @@ export default function RegisterPage() {
         </p>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form onSubmit={e => { e.preventDefault(); void handleRegister(); }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <label htmlFor="register-name">Nombre y apellido</label>
         <input
+          id="register-name"
+          autoComplete="name"
           placeholder="Nombre y apellido"
           value={nombreUsuario}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNombreUsuario(e.target.value)}
           style={{ padding: '0.5rem', fontSize: '1rem' }}
         />
+        <label htmlFor="register-nickname">Nickname</label>
         <input
+          id="register-nickname"
+          autoComplete="username"
           placeholder="Nickname"
           value={nickname}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNickname(e.target.value)}
           style={{ padding: '0.5rem', fontSize: '1rem' }}
         />
+        <label htmlFor="register-password">Contraseña</label>
         <input
+          id="register-password"
+          autoComplete="new-password"
           placeholder="Contraseña"
           type="password"
           value={contrasena}
@@ -56,6 +65,7 @@ export default function RegisterPage() {
           <label style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <input
               type="radio"
+              name="tipo-cuenta"
               checked={tipo === 'jugador'}
               onChange={() => setTipo('jugador')}
             />
@@ -64,6 +74,7 @@ export default function RegisterPage() {
           <label style={{ display: 'flex', gap: '0.5rem' }}>
             <input
               type="radio"
+              name="tipo-cuenta"
               checked={tipo === 'anfitrion'}
               onChange={() => setTipo('anfitrion')}
             />
@@ -71,16 +82,17 @@ export default function RegisterPage() {
           </label>
         </fieldset>
 
-        <button disabled={busy} onClick={handleRegister} style={{ padding: '0.5rem', fontSize: '1rem' }}>
+        <button type="submit" disabled={busy} style={{ padding: '0.5rem', fontSize: '1rem' }}>
           Registrar
         </button>
         <button
+          type="button"
           onClick={() => navigate('/login')}
-          style={{ padding: '0.5rem', fontSize: '1rem', background: '#222222' }}
+          style={{ padding: '0.5rem', fontSize: '1rem', background: '#222222', color: 'white' }}
         >
           Ir a Login
         </button>
-      </div>
-    </div>
+      </form>
+    </main>
   );
 }
