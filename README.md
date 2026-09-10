@@ -24,6 +24,8 @@ Las cuentas se guardan en MySQL. Si ya tenían usuarios con contraseñas sin has
 
 Ver [reglas y endpoints](docs/funcionalidad.md) y [pruebas](docs/pruebas_manuales.md).
 
+La [documentación del proyecto](docs/README.md) reúne instalación, modelo, verificación y pendientes de entrega.
+
 ## Cambios Implementados (Alejandro Ciesco & Octavio Gudiño)
 
 ### 1. Módulo de Alejandro Mario Ciesco (Clases, Personajes y Acceso a Partidas)

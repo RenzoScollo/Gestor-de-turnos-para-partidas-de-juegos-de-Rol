@@ -49,7 +49,7 @@ export function crearJuegoRouter(em: EntityManager) {
     const i = await em.findOne(Inventario, { personaje: p, numInventario: routeId(req.params.number) });
     if (!i) throw new HttpError(404, 'Inventario no encontrado');
     const objetos = await em.find(Objeto, { inventario: i });
-    res.json({ ...inventoryDTO(i), objetos: objetos.map(o => ({ idObjeto: o.idObjeto, nombre: o.nombre, posicion: o.posicion, valor: o.valor, ...rangoVenta(o.valor) })) });
+    res.json({ ...inventoryDTO(i), objetos: objetos.map(o => ({ idObjeto: o.idObjeto, nombre: o.nombre, posicion: o.posicion, valor: o.valor, esUnico: o.esUnico, ...rangoVenta(o.valor) })) });
   });
   r.post('/inventarios', async (req, res) => res.status(201).json(await service.saveInventory(req.identity!.idUsuario, req.body)));
   r.put('/inventarios/:character/:number', async (req, res) => res.json(await service.saveInventory(req.identity!.idUsuario, { ...req.body, idPersonaje: routeId(req.params.character), numInventario: routeId(req.params.number) }, true)));

@@ -6,6 +6,8 @@ Actualización posterior: se integró `origin/main` en `cc70a3c` (PR #31), con o
 
 Este archivo registra el cierre de la entrega. Una tarea pendiente no se considera cumplida por la sola presencia de código o por un informe anterior.
 
+El detalle de estados y evidencias se mantiene en la [matriz de requisitos](matriz_requisitos.md). El [índice documental](README.md) enlaza el modelo actual y los [contratos de API](api.md).
+
 ## Requisitos y evidencia pendiente
 
 | Área | Trabajo para cerrar | Evidencia necesaria |
@@ -76,3 +78,7 @@ Los puertos 5174 y 3101 deben estar libres. Vite mantiene su destino habitual `l
 El menú usa enlaces reales (`NavLink`) en lugar de elementos de lista con clic, expone la página actual y tiene un nombre accesible. Incluye un enlace inicial para saltar al contenido principal y un indicador de foco visible. Login y Registro usan formularios con etiquetas asociadas y autocompletado; admiten envío con Enter. Los errores de ingreso ya no desaparecen automáticamente a los tres segundos.
 
 Las tarjetas del Dashboard se adaptan al ancho disponible. Se revisaron capturas del Dashboard en los tres tamaños indicados; el aviso global dejó de superponerse al encabezado. Estas comprobaciones no certifican accesibilidad completa ni cubren todavía todos los CRUD, el modo oscuro o todas las combinaciones de datos.
+
+## Contrato de objetos únicos en inventarios
+
+La revisión de API detectó que la interfaz consultaba `esUnico` pero el detalle de inventario no lo enviaba. Se agregó el indicador al DTO del endpoint y una prueba que compra un objeto único, consulta su inventario y comprueba el atributo junto con el rango de venta. Resultado local: 20 pruebas MySQL y 76 unitarias del backend aprobadas. Esta prueba no certifica todavía la exclusión concurrente de dos objetos únicos equivalentes en una misma partida.

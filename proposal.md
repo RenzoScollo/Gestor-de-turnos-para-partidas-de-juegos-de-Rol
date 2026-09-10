@@ -9,16 +9,20 @@
 54342 - Ciesco, Alejandro Mario <br>
 
 ### Repositorios
-* [frontend app](http://hyperlinkToGihubOrGitlab)
-* [backend app](http://hyperlinkToGihubOrGitlab)
+* [Frontend del repositorio original](https://github.com/FrancoTesti/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/tree/main/frontend)
+* [Backend del repositorio original](https://github.com/FrancoTesti/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/tree/main/src)
+* [Rama de cierre en el fork de Renzo](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/tree/entrega/completar-tp)
+
+El proyecto es un monorepositorio: frontend y backend tienen dependencias y ejecución separadas. El PR final de entrega todavía debe publicarse; el enlace a la rama no lo reemplaza.
 
 ## Tema
 ### Descripción
 Trata de un gestor de turnos para partidas de juegos de Rol, con sistema de compra-venta de objetos del juego en las partidas, con registro y logueo tanto para “Jugador” como “Anfitrión” y sistema para crear personajes de rol.
 
 ### Modelo
-LINK:https://drive.google.com/file/d/1-zXEpOdd3ASk3xKuXXNHCWMKxyeTyydU/view?usp=sharing
-![Texto alternativo](ModeloDominio.drawio.png)
+[Modelo de datos implementado y relaciones](docs/modelo.md).
+
+[DER anterior del grupo](docs/DER_NEW.png), conservado como referencia histórica: no representa todos los cambios del código actual.
 
 
 

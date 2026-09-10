@@ -178,6 +178,22 @@ test('compra valida enteros estrictos, posición, propiedad y dinero', async () 
   assert.equal((await request(path, 'POST', { idPersonaje: ids.character, numInventario: 1, posicion: 1 }, playerCookie)).status, 409);
   const p = await orm.em.fork().findOneOrFail(Personaje, { idPersonaje: ids.character }); assert.equal(p.dinero, 60);
 });
+test('inventario conserva el indicador de objeto único después de comprar', async () => {
+  const em = orm.em.fork();
+  const objeto = await em.findOneOrFail(Objeto, { idObjeto: ids.object });
+  objeto.esUnico = true;
+  await em.flush();
+  const compra = await request(`/objetos/${ids.object}/comprar`, 'POST', { idPersonaje: ids.character, numInventario: 1, posicion: 0 }, playerCookie);
+  assert.equal(compra.status, 200);
+  const detalle = await request(`/inventarios/${ids.character}/1`, 'GET', undefined, playerCookie);
+  assert.equal(detalle.status, 200);
+  assert.equal(detalle.body.objetos.length, 1);
+  assert.equal(detalle.body.objetos[0].idObjeto, ids.object);
+  assert.equal(detalle.body.objetos[0].esUnico, true);
+  assert.equal(detalle.body.objetos[0].minimo, 28);
+  assert.equal(detalle.body.objetos[0].maximo, 40);
+});
+
 test('rollback real: falla tras escribir en MySQL y recupera dinero y ubicación', async () => {
   const em = orm.em.fork({ freshEventManager: true });
   em.getEventManager().registerSubscriber({ afterFlush() { throw new Error('Fallo después de escribir'); } });
