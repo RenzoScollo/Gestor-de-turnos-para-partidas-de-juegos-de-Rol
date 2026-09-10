@@ -22,7 +22,7 @@ Estados: **probado** significa que existe una comprobación ejecutada del caso i
 | CRUD Inventario y movimiento | E2E crea segundo inventario, mueve a posición 2 y vende; integración de capacidad y baja | Probado para los casos enumerados |
 | Calificar anfitrión | E2E termina con karma 1; integración impide repetición | Probado para el caso enumerado |
 | Crear personaje y gestionar partida | Recorrido de dos cuentas y pruebas de cupo/contraseña/propiedad | Parcial: confirmar totalidad de variantes con la propuesta ampliada |
-| Actualizar usuario | Integración persiste nombre/nickname y contraseña; invalida cookie anterior y rechaza contraseña antigua | Probado en API; falta recorrido de edición en navegador |
+| Actualizar usuario | Integración y E2E persisten nombre/nickname, cambian contraseña, rechazan la anterior y permiten nuevo login; E2E elimina la cuenta sin dependencias | Probado en API y navegador para el recorrido enumerado |
 
 Las referencias de pruebas están en [integración MySQL](../src/integration/juego.test.ts), [tests backend](../src/tests), [tests frontend](../frontend/src) y [E2E](../e2e/autenticacion.spec.ts). No se atribuye autoría individual a partir de un conteo de tests.
 
@@ -34,8 +34,8 @@ Las [condiciones de la cátedra](https://github.com/utnfrrodsw/tp) requieren sep
 | --- | --- | --- |
 | Arquitectura | React/Vite separado de Express; servicios/DTO/entidades; MikroORM y MySQL | Revisar consistencia final de contratos con el código de entrega |
 | Autenticación | Cookie, `auth.ts`, autorización backend y layout protegido; tests de sesión | Auditar permisos visuales de cada operación |
-| Tests | 76 backend, 50 frontend, 23 MySQL y 4 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
-| Responsive/UX | Menú y Dashboard comprobados a 375/768/1440; Enter y salto al contenido | Revisar todos los módulos, contrastes, datos largos y modo oscuro; revisar estrategia mobile-first |
+| Tests | 76 backend, 50 frontend, 23 MySQL y 6 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
+| Responsive/UX | Once pantallas principales pobladas sin desborde general a 375/768/1440; Enter y salto al contenido; corrección visual en Personajes | Revisar formularios/detalles, contrastes y modo oscuro; revisar estrategia mobile-first |
 | Instalación | Guía y scripts; actualización `esUnico` documentada | Ensayo limpio completo con la versión final |
 | Propuesta/modelo | Enlaces corregidos y modelo actual basado en entidades | Cotejar con documento del grupo y validación docente |
 | API | [Contratos HTTP](api.md): entradas, salidas, permisos, sesión, errores y acciones | Revisión final de ejemplos y cambios posteriores |
