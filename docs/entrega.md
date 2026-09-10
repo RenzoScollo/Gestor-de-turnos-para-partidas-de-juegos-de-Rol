@@ -94,3 +94,11 @@ La suite MySQL se amplió a 23 casos. Las nuevas comprobaciones cubren:
 - Actualización de nombre/nickname y contraseña: datos persistidos, cookie anterior invalidada, contraseña antigua rechazada y nuevo login correcto sin exponer el hash.
 
 Estas son pruebas de API con MySQL real; no sustituyen los recorridos visuales todavía pendientes en la matriz. No se modificó la regla existente de unicidad durante esta ampliación.
+
+## Dependencias y auditoría
+
+La auditoría del 10 de septiembre de 2026 detectó alertas en `mysql2` (incluida la copia 3.20.0 fijada por MikroORM) y `qs`. Se actualizó `mysql2` a 3.24.4 y `qs` a 6.16.0. El override `mysql2: "$mysql2"` hace que MikroORM 6.6.16 use el mismo driver que la dependencia directa; no se migró el ORM a la versión 7.
+
+`npm ci` reinstaló correctamente desde el lockfile y `npm ls mysql2 qs` confirmó una sola versión del driver, sin dependencias inválidas. La auditoría de ambos proyectos informó cero vulnerabilidades conocidas en esa consulta. Esto no equivale a una garantía de seguridad ni reemplaza revisiones posteriores. CI ejecuta auditoría con umbral `moderate` para señalar nuevas alertas.
+
+La [ejecución remota 34478165867](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34478165867) aprobó el commit anterior a esta actualización de dependencias; la nueva versión requiere su propia ejecución.

@@ -18,7 +18,7 @@
     "@types/express": "^5.0.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mysql2": "^3.22.6",
+    "mysql2": "^3.24.4",
     "prompt-sync": "^4.2.0",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.4.3"
@@ -33,6 +33,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "mysql2": "$mysql2"
   },
   "mikro-orm": {
     "useTsNode": true
