@@ -328,6 +328,90 @@ test('catálogo: editar clase y tienda, quitar vínculo y respetar dependencias 
   await expect(card).toHaveCount(0);
 });
 
+test('partida, sesión y misión: edición persistida, filtro de activas y baja ordenada', async ({ page }) => {
+  const recargarListado = async (resource: string, title: string) => {
+    const response = page.waitForResponse(r => r.url().endsWith(`/api/${resource}`) && r.request().method() === 'GET');
+    await page.reload();
+    expect((await response).status()).toBe(200);
+    await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+    await expect(page.getByText('Cargando…', { exact: true })).toHaveCount(0);
+  };
+  await registrar(page, 'modulos_crud');
+  await ingresar(page, 'modulos_crud');
+  await page.goto('/games');
+  await page.getByRole('button', { name: 'Crear', exact: true }).click();
+  await page.getByLabel('Nombre', { exact: true }).fill('Campaña CRUD E2E');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  const gameRow = page.getByRole('row').filter({ hasText: 'Campaña CRUD E2E' });
+  await gameRow.getByRole('button', { name: 'Editar', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Estado', exact: true }).selectOption('finalizada');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await page.reload();
+  await expect(gameRow).toContainText('finalizada');
+  await page.getByLabel('Solo partidas activas').check();
+  await expect(gameRow).toHaveCount(0);
+  await page.getByLabel('Solo partidas activas').uncheck();
+  await expect(gameRow).toBeVisible();
+  await gameRow.getByRole('button', { name: 'Editar', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Estado', exact: true }).selectOption('activa');
+  await page.getByLabel('Límite de jugadores', { exact: true }).fill('6');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await expect(gameRow).toContainText('activa');
+  await recargarListado('partidas', 'Partidas');
+  await expect(gameRow.getByRole('cell', { name: '6', exact: true })).toBeVisible();
+  await gameRow.getByRole('button', { name: 'Ver detalle', exact: true }).click();
+  await expect(page.getByRole('article')).toContainText('Campaña CRUD E2E');
+
+  await page.goto('/sessions');
+  await page.getByRole('button', { name: 'Crear', exact: true }).click();
+  const games = page.getByRole('combobox', { name: 'Partida', exact: true });
+  const gameId = await games.locator('option').filter({ hasText: 'Campaña CRUD E2E' }).getAttribute('value');
+  await games.selectOption(gameId!);
+  await page.getByLabel('Número de sesión', { exact: true }).fill('1');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  const sessionRow = page.getByRole('row').filter({ hasText: 'Campaña CRUD E2E' });
+  await sessionRow.getByRole('button', { name: 'Editar', exact: true }).click();
+  await page.getByLabel('Duración (minutos)', { exact: true }).fill('90');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await page.reload();
+  await expect(sessionRow.getByRole('cell', { name: '90', exact: true })).toBeVisible();
+
+  await page.goto('/missions');
+  await page.getByRole('button', { name: 'Crear', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Partida', exact: true }).selectOption(gameId!);
+  await page.getByLabel('Número de sesión', { exact: true }).fill('1');
+  await page.getByLabel('Número de misión', { exact: true }).fill('1');
+  await page.getByLabel('Descripción', { exact: true }).fill('Misión CRUD E2E');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  const missionRow = page.getByRole('row').filter({ hasText: 'Misión CRUD E2E' });
+  await missionRow.getByRole('button', { name: 'Editar', exact: true }).click();
+  await page.getByLabel('Dinero total', { exact: true }).fill('80');
+  await page.getByLabel('XP total', { exact: true }).fill('40');
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await page.reload();
+  await expect(missionRow.getByRole('cell', { name: '80', exact: true })).toBeVisible();
+  await expect(missionRow.getByRole('cell', { name: '40', exact: true })).toBeVisible();
+  await missionRow.getByRole('button', { name: 'Ver detalle', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Detalle', exact: true })).toBeVisible();
+  page.once('dialog', dialog => dialog.accept());
+  await missionRow.getByRole('button', { name: 'Eliminar', exact: true }).click();
+  await expect(missionRow).toHaveCount(0);
+  await recargarListado('misiones', 'Misiones');
+  await expect(missionRow).toHaveCount(0);
+  await page.goto('/sessions');
+  page.once('dialog', dialog => dialog.accept());
+  await sessionRow.getByRole('button', { name: 'Eliminar', exact: true }).click();
+  await expect(sessionRow).toHaveCount(0);
+  await recargarListado('sesiones', 'Sesiones');
+  await expect(sessionRow).toHaveCount(0);
+  await page.goto('/games');
+  page.once('dialog', dialog => dialog.accept());
+  await gameRow.getByRole('button', { name: 'Eliminar', exact: true }).click();
+  await expect(gameRow).toHaveCount(0);
+  await recargarListado('partidas', 'Partidas');
+  await expect(gameRow).toHaveCount(0);
+});
+
 test('dos usuarios completan juego, recompensas, karma y comercio con inventarios', async ({ page: host, browser }) => {
   const player = await browser.newPage({ baseURL: 'http://127.0.0.1:5174' });
   try {

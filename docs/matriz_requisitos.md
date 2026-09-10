@@ -1,6 +1,6 @@
 # Matriz de alcance y evidencia
 
-Revisión sobre `0d9422d`, con main original `cc70a3c` integrado. No constituye un acta de aprobación. Fuente funcional: [propuesta del grupo](../proposal.md). El documento de Google permanece pendiente de relectura.
+Revisión incremental en `entrega/completar-tp`, con main original `cc70a3c` integrado. Las ejecuciones y sus commits se registran en [seguimiento de entrega](entrega.md). No constituye un acta de aprobación. Fuente funcional: [propuesta del grupo](../proposal.md). El documento de Google permanece pendiente de relectura.
 
 Estados: **probado** significa que existe una comprobación ejecutada del caso indicado, no que estén verificadas todas sus variantes. **Parcial** requiere ampliar la evidencia. **Pendiente** indica que no hay un entregable comprobado.
 
@@ -10,15 +10,15 @@ Estados: **probado** significa que existe una comprobación ejecutada del caso i
 | --- | --- | --- |
 | CRUD Usuario | `usuario.service.ts`, `UsersPage.tsx`; integración de registro, permisos y baja de cuenta | Parcial: auditar edición completa y navegación del CRUD |
 | CRUD Objeto, Tienda y Clase | Integración de catálogo; E2E crea, edita, consulta y elimina los tres recursos con recargas; verifica valor/nivel/unicidad de objetos, filtros, desvinculación de tienda y rechazo de baja de clase vinculada | Recorridos enumerados probados; pendientes variantes adicionales y revisión de temas/tamaños de catálogo |
-| CRUD Misión | `juego.service.ts`, `ModulePage`; integración de CRUD y recompensas | Probado en integración; completar recorrido visual de edición/baja |
+| CRUD Misión | `juego.service.ts`, `ModulePage`; integración de CRUD/recompensas; E2E crea, edita dinero/XP, recarga, abre detalle y elimina misión pendiente | Probado en API y navegador para esos casos |
 | Personaje dependiente de Jugador | `personaje.service.ts`, `PersonajesPage`; creación privada, inventario inicial y restricciones en integración; E2E crea, edita nombre/raza, recarga y elimina sin dependencias | Probado para los recorridos enumerados; rechazos por historial/objetos cubiertos por API |
 | Jugador y Anfitrión dependientes de Usuario | `ProfilesPage`, servicios de perfiles; integración de altas, cambios y dependencias | Probado en integración; revisar navegación con ambos perfiles |
-| Partidas activas, privacidad y anfitrión; detalle | Integración excluye una partida finalizada y verifica privacidad/anfitrión en detalle | Probado en API; falta recorrido específico del filtro en navegador |
+| Partidas activas, privacidad y anfitrión; detalle | Integración verifica privacidad/anfitrión; E2E finaliza una partida, comprueba que el filtro de activas la excluye, restablece el listado y abre detalle | Probado en API y navegador para esos casos |
 | Objetos sugeridos por clase y detalle | Integración distingue dos clases, excluye el objeto comprado y rechaza personaje ajeno | Probado en API; falta recorrido específico del filtro en navegador |
 | Personajes por clase y detalle | Integración distingue clases y atributos; E2E abre ficha, selecciona clase sin personajes, filtra por clase con personaje y restablece todas | Probado en API y navegador para esos casos |
 | Jugar sesión + realizar misión | E2E de dos cuentas: asistencia, inicio, misión, 50 XP y 100 monedas, cierre | Probado para el recorrido positivo; integración cubre rechazos e idempotencia |
 | Comercialización | E2E: comprar por 40 y vender por 28; integración de saldo, propiedad, rollback y concurrencia | Probado para los casos enumerados |
-| CRUD Partida y Sesión | Servicios, `ModulePage`; creación E2E y CRUD de sesiones planificadas en integración | Parcial: auditar recorrido visual completo de partidas |
+| CRUD Partida y Sesión | E2E crea ambas, modifica estado/cupo de partida y duración de sesión, verifica persistencia y elimina tras borrar la misión; integración cubre restricciones | Probado para esos recorridos; no incluye todas las variantes de historial |
 | CRUD Inventario y movimiento | E2E crea segundo inventario, mueve a posición 2 y vende; integración de capacidad y baja | Probado para los casos enumerados |
 | Calificar anfitrión | E2E termina con karma 1; integración impide repetición | Probado para el caso enumerado |
 | Crear personaje y gestionar partida | Recorrido de dos cuentas y pruebas de cupo/contraseña/propiedad | Parcial: confirmar totalidad de variantes con la propuesta ampliada |
@@ -34,7 +34,7 @@ Las [condiciones de la cátedra](https://github.com/utnfrrodsw/tp) requieren sep
 | --- | --- | --- |
 | Arquitectura | React/Vite separado de Express; servicios/DTO/entidades; MikroORM y MySQL | Revisar consistencia final de contratos con el código de entrega |
 | Autenticación | Cookie, `auth.ts`, autorización backend y layout protegido; tests de sesión | Auditar permisos visuales de cada operación |
-| Tests | 76 backend, 58 frontend, 24 MySQL y 7 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
+| Tests | 76 backend, 58 frontend, 24 MySQL y 8 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
 | Responsive/UX | Once pantallas principales pobladas sin desborde general a 375/768/1440; Enter y salto al contenido; formulario/ficha de Personajes en ambos temas y tres anchos, contraste medido de textos seleccionados | Revisar formularios/detalles y modo oscuro de los demás módulos; auditoría de accesibilidad completa y estrategia mobile-first pendientes |
 | Instalación | Guía y scripts; actualización `esUnico` documentada | Ensayo limpio completo con la versión final |
 | Propuesta/modelo | Enlaces corregidos y modelo actual basado en entidades | Cotejar con documento del grupo y validación docente |

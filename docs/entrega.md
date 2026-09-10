@@ -134,3 +134,11 @@ El recorrido de catálogo se amplió para crear un objeto, rechazar un valor dec
 Los filtros ahora tienen nombres accesibles explícitos. El control numérico de valor avanza de a enteros y el mínimo del nivel es 1, en concordancia con las validaciones existentes. No se cambiaron las reglas de precios ni los permisos del backend.
 
 Se repitieron compilación, lint y 58 tests del frontend, además de los 7 E2E completos: todos aprobados. El `main` original continúa en `cc70a3c`; este avance no altera la base de datos de uso normal ni fusiona ramas.
+
+## Partidas, sesiones y misiones: CRUD desde el navegador
+
+Un octavo recorrido crea una partida, persiste el cambio a finalizada, verifica el filtro de activas y lo restablece. Luego vuelve a activa, modifica el cupo y consulta el detalle. Crea una sesión y persiste su duración de 90 minutos; crea una misión pendiente y persiste totales de 80 monedas y 40 XP. Finalmente consulta el detalle y elimina misión, sesión y partida en ese orden, verificando su ausencia después de una nueva lectura HTTP y recarga.
+
+El primer intento tenía un selector de prueba incorrecto para Estado: el control real es un desplegable. Se corrigió la prueba, no el comportamiento de producción. Los ocho E2E completos y la compilación backend aprobaron. No se ejecutaron nuevas pruebas unitarias en este avance, que solo modifica pruebas y documentación.
+
+La [ejecución remota 34482122742](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34482122742) aprobó `9456c24`; el commit del octavo recorrido requiere su propia ejecución remota.
