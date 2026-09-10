@@ -82,3 +82,15 @@ Las tarjetas del Dashboard se adaptan al ancho disponible. Se revisaron capturas
 ## Contrato de objetos únicos en inventarios
 
 La revisión de API detectó que la interfaz consultaba `esUnico` pero el detalle de inventario no lo enviaba. Se agregó el indicador al DTO del endpoint y una prueba que compra un objeto único, consulta su inventario y comprueba el atributo junto con el rango de venta. Resultado local: 20 pruebas MySQL y 76 unitarias del backend aprobadas. Esta prueba no certifica todavía la exclusión concurrente de dos objetos únicos equivalentes en una misma partida.
+
+## Ampliación de evidencia funcional
+
+La suite MySQL se amplió a 23 casos. Las nuevas comprobaciones cubren:
+
+- Dos copias únicas de igual nombre compradas simultáneamente por jugadores distintos de la misma partida: una sola compra exitosa, una sola copia adquirida y un solo débito.
+- Partidas activas frente a una finalizada; detalle con privacidad y anfitrión.
+- Personajes de dos clases, atributos exigidos y consulta sin filtro.
+- Objetos sugeridos de la clase correcta; exclusión después de comprar y rechazo al consultar sugerencias de un personaje ajeno.
+- Actualización de nombre/nickname y contraseña: datos persistidos, cookie anterior invalidada, contraseña antigua rechazada y nuevo login correcto sin exponer el hash.
+
+Estas son pruebas de API con MySQL real; no sustituyen los recorridos visuales todavía pendientes en la matriz. No se modificó la regla existente de unicidad durante esta ampliación.

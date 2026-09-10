@@ -121,6 +121,28 @@ test('API exige sesión, protege cuentas ajenas y rechaza credenciales incorrect
   assert.equal((await request(`/usuarios/${ids.player}`, 'PUT', { contrasena: 'nueva123' }, playerCookie)).status, 200);
   assert.equal((await request('/auth/me', 'GET', undefined, playerCookie)).status, 401);
 });
+test('actualizar cuenta persiste sus datos y cambiar contraseña invalida la sesión anterior', async () => {
+  const cambio = await request(`/usuarios/${ids.player}`, 'PUT', {
+    nombreUsuario: 'Jugador actualizado', nickname: 'player_actualizado', imagen: '', contrasena: 'nuevaClave123',
+  }, playerCookie);
+  assert.equal(cambio.status, 200);
+  assert.equal(cambio.body.nickname, 'player_actualizado');
+  assert.equal(cambio.body.nombreUsuario, 'Jugador actualizado');
+  assert.equal(cambio.body.contrasena, undefined);
+  assert.equal((await request('/auth/me', 'GET', undefined, playerCookie)).status, 401);
+  assert.equal((await request('/auth/login', 'POST', { nickname: 'player_actualizado', contrasena: 'secreto123' }, '')).status, 401);
+  const login = await request('/auth/login', 'POST', { nickname: 'player_actualizado', contrasena: 'nuevaClave123' }, '');
+  assert.equal(login.status, 200);
+  assert.ok(login.cookie);
+  assert.equal(login.body.usuario.idUsuario, ids.player);
+  assert.equal(login.body.roles.jugador, true);
+  const fresh = await request(`/usuarios/${ids.player}`, 'GET', undefined, login.cookie);
+  assert.equal(fresh.status, 200);
+  assert.equal(fresh.body.nombreUsuario, 'Jugador actualizado');
+  assert.equal(fresh.body.nickname, 'player_actualizado');
+  assert.equal(fresh.body.contrasena, undefined);
+});
+
 test('perfiles propios se crean y editan, y las dependencias impiden eliminarlos', async () => {
   assert.equal((await request('/anfitriones', 'POST', { idUsuario: ids.other }, playerCookie)).status, 403);
   const host = await request('/anfitriones', 'POST', { idUsuario: ids.player }, playerCookie);
@@ -211,6 +233,56 @@ test('dos compras concurrentes del mismo objeto: solo una gana y solo un débito
   assert.deepEqual(results.map(r => r.status).sort(), [200, 409]);
   const players = await orm.em.fork().find(Personaje, {}); assert.equal(players.reduce((sum, p) => sum + p.dinero, 0), 160);
 });
+test('dos copias únicas de igual nombre no pueden adquirirse simultáneamente en la misma partida', async () => {
+  const em = orm.em.fork();
+  const original = await em.findOneOrFail(Objeto, { idObjeto: ids.object }, { populate: ['tienda'] });
+  original.esUnico = true;
+  const copia = em.create(Objeto, { nombre: original.nombre, descripcion: 'Otra copia física', tipoObjeto: original.tipoObjeto, valor: 40, nivelObjeto: 1, esUnico: true, posicion: 0, tienda: original.tienda });
+  await em.flush();
+  const resultados = await Promise.all([
+    request(`/objetos/${original.idObjeto}/comprar`, 'POST', { idPersonaje: ids.character, numInventario: 1, posicion: 0 }, playerCookie),
+    request(`/objetos/${copia.idObjeto}/comprar`, 'POST', { idPersonaje: ids.otherCharacter, numInventario: 1, posicion: 0 }, otherCookie),
+  ]);
+  assert.equal(resultados.filter(r => r.status === 200).length, 1, JSON.stringify(resultados));
+  assert.ok(resultados.some(r => r.status === 400 && r.body.message.includes('único')), JSON.stringify(resultados));
+  const fresh = orm.em.fork();
+  assert.equal(await fresh.count(Objeto, { esUnico: true, inventario: { personaje: { partida: { idPartida: ids.game } } } }), 1);
+  const personajes = await fresh.find(Personaje, {});
+  assert.equal(personajes.reduce((total, p) => total + p.dinero, 0), 160);
+});
+
+test('listados filtran partidas activas, personajes por clase y objetos sugeridos disponibles', async () => {
+  const em = orm.em.fork();
+  const host = await em.findOneOrFail(Anfitrion, { usuario: { idUsuario: ids.host } });
+  const clase = em.create(Clase, { nombreClase: 'Mago', descripcionClase: 'Magia' });
+  const tienda = em.create(Tienda, { nombre: 'Tienda mágica', claseTienda: 'Magia', clase });
+  const objeto = em.create(Objeto, { nombre: 'Bastón', descripcion: 'Madera', tipoObjeto: 'Arma', valor: 30, nivelObjeto: 1, esUnico: false, posicion: 0, tienda });
+  const finalizada = em.create(Partida, { idPartida: undefined!, nombre: 'Terminada', estado: false, limiteJugadores: 4, contrasena: '', anfitrion: host });
+  const otro = await em.findOneOrFail(Personaje, { idPersonaje: ids.otherCharacter });
+  otro.clase = clase;
+  await em.flush();
+  const activas = await request('/partidas/activas');
+  assert.equal(activas.status, 200);
+  assert.ok(activas.body.some((p: { idPartida: number }) => p.idPartida === ids.game));
+  assert.ok(!activas.body.some((p: { idPartida: number }) => p.idPartida === finalizada.idPartida));
+  const detalle = await request(`/partidas/${ids.game}`);
+  assert.equal(detalle.body.nicknameAnfitrion, 'host');
+  assert.equal(detalle.body.esPrivada, false);
+  const filtrados = await request(`/personajes?idClase=${clase.idClase}`);
+  assert.equal(filtrados.status, 200);
+  assert.deepEqual(filtrados.body.map((p: { idPersonaje: number }) => p.idPersonaje), [ids.otherCharacter]);
+  for (const campo of ['nombreFicticio', 'jugadorNombre', 'xp', 'nivel', 'raza', 'idPersonaje']) assert.ok(campo in filtrados.body[0], campo);
+  assert.equal((await request('/personajes')).body.length, 2);
+  const sugeridos = await request(`/objetos/sugeridos/${ids.otherCharacter}`, 'GET', undefined, otherCookie);
+  assert.equal(sugeridos.status, 200);
+  assert.deepEqual(sugeridos.body.map((o: { idObjeto: number }) => o.idObjeto), [objeto.idObjeto]);
+  assert.equal(sugeridos.body[0].tipoObjeto, 'Arma');
+  assert.equal(sugeridos.body[0].valor, 30);
+  assert.equal((await request(`/objetos/${objeto.idObjeto}/comprar`, 'POST', { idPersonaje: ids.otherCharacter, numInventario: 1, posicion: 0 }, otherCookie)).status, 200);
+  assert.deepEqual((await request(`/objetos/sugeridos/${ids.otherCharacter}`, 'GET', undefined, otherCookie)).body, []);
+  assert.equal((await request(`/objetos/sugeridos/${ids.otherCharacter}`, 'GET', undefined, playerCookie)).status, 403);
+});
+
 test('dos compras concurrentes a igual posición no duplican ni descuentan dos veces', async () => {
   const em = orm.em.fork(); const tienda = await em.findOneOrFail(Tienda, { idTienda: ids.store }); const o = em.create(Objeto, { nombre: 'Escudo', descripcion: 'Hierro', tipoObjeto: 'Arma', valor: 40, nivelObjeto: 1, esUnico: false, posicion: 0, tienda }); await em.flush();
   const data = { idPersonaje: ids.character, numInventario: 1, posicion: 0 };
