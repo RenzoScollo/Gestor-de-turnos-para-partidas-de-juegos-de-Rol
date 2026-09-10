@@ -71,8 +71,16 @@ export default function ClaseLista({
                 key={clase.idClase}
                 className={`clase-card ${esSeleccionado ? 'seleccionado' : ''}`}
                 onClick={() => onSeleccionar?.(clase)}
+                onKeyDown={event => {
+                  if (event.target !== event.currentTarget || !onSeleccionar) return;
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSeleccionar(clase);
+                  }
+                }}
                 role={onSeleccionar ? 'button' : undefined}
                 tabIndex={onSeleccionar ? 0 : undefined}
+                aria-pressed={onSeleccionar ? esSeleccionado : undefined}
               >
                 <div>
                   <div className="clase-icon-badge">🛡️</div>

@@ -45,6 +45,8 @@ Los datos públicos por recurso se especifican en [src/types](../src/types): inc
 
 Las bajas pueden rechazarse si existen dependencias o historial. Una cuenta no puede borrar datos ajenos. Un objeto adquirido solo se modifica mediante compra, venta o movimiento, no mediante el CRUD del catálogo.
 
+DELETE `/clases/:id` devuelve 409 si hay tiendas vinculadas, sin modificar sus referencias. Para quitar una vinculación explícitamente, enviar PUT `/tiendas/:id` con `{ "idClase": null }`; también se puede cambiar por otra clase existente. Los personajes vinculados siguen impidiendo la baja. Esta validación evita depender del `ON DELETE SET NULL` que puede tener la FK nullable de tiendas en instalaciones existentes.
+
 ### Listados especiales
 
 | GET | Resultado |

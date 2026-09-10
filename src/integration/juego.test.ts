@@ -172,6 +172,20 @@ test('CRUD de catálogo y referencias inexistentes', async () => {
   assert.equal((await request(`/tiendas/${t.body.idTienda}`, 'DELETE')).status, 204);
   assert.equal((await request(`/clases/${c.body.idClase}`, 'DELETE')).status, 204);
 });
+test('eliminar clase no desvincula tiendas implícitamente; permite baja tras quitar vínculo', async () => {
+  const clase = await request('/clases', 'POST', { nombreClase: 'Mercader', descripcionClase: 'Comercio' });
+  assert.equal(clase.status, 201);
+  const tienda = await request('/tiendas', 'POST', { nombre: 'Mercado', claseTienda: 'General', idClase: clase.body.idClase });
+  assert.equal(tienda.status, 201);
+  assert.equal((await request(`/clases/${clase.body.idClase}`, 'DELETE')).status, 409);
+  assert.equal((await request(`/clases/${clase.body.idClase}`)).status, 200);
+  assert.equal((await request(`/tiendas/${tienda.body.idTienda}`)).body.idClase, clase.body.idClase);
+  assert.equal((await request(`/tiendas/${tienda.body.idTienda}`, 'PUT', { idClase: null })).status, 200);
+  assert.equal((await request(`/clases/${clase.body.idClase}`, 'DELETE')).status, 204);
+  assert.equal((await request(`/clases/${clase.body.idClase}`)).status, 404);
+  assert.equal((await request(`/tiendas/${tienda.body.idTienda}`)).body.idClase, null);
+});
+
 test('cambio público/privado, contraseña, cupo y anfitrión propietario', async () => {
   const path = `/partidas/${ids.game}`;
   assert.equal((await request(path, 'PUT', { esPrivada: true })).status, 400);

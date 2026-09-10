@@ -9,7 +9,7 @@ Estados: **probado** significa que existe una comprobación ejecutada del caso i
 | Requisito de la propuesta | Código y evidencia | Estado de cierre |
 | --- | --- | --- |
 | CRUD Usuario | `usuario.service.ts`, `UsersPage.tsx`; integración de registro, permisos y baja de cuenta | Parcial: auditar edición completa y navegación del CRUD |
-| CRUD Objeto, Tienda y Clase | Servicios respectivos, pantallas específicas; integración «CRUD de catálogo»; creación y compra en E2E | Parcial: revisar todas las variantes y detalles visuales |
+| CRUD Objeto, Tienda y Clase | Integración de catálogo; E2E crea, edita y elimina clase/tienda con recargas, consulta detalles y quita vinculación; rechaza baja de clase vinculada sin perder datos | Parcial: completar edición/baja visual de objetos y revisión de variantes, temas y tamaños de catálogo |
 | CRUD Misión | `juego.service.ts`, `ModulePage`; integración de CRUD y recompensas | Probado en integración; completar recorrido visual de edición/baja |
 | Personaje dependiente de Jugador | `personaje.service.ts`, `PersonajesPage`; creación privada, inventario inicial y restricciones en integración; E2E crea, edita nombre/raza, recarga y elimina sin dependencias | Probado para los recorridos enumerados; rechazos por historial/objetos cubiertos por API |
 | Jugador y Anfitrión dependientes de Usuario | `ProfilesPage`, servicios de perfiles; integración de altas, cambios y dependencias | Probado en integración; revisar navegación con ambos perfiles |
@@ -34,7 +34,7 @@ Las [condiciones de la cátedra](https://github.com/utnfrrodsw/tp) requieren sep
 | --- | --- | --- |
 | Arquitectura | React/Vite separado de Express; servicios/DTO/entidades; MikroORM y MySQL | Revisar consistencia final de contratos con el código de entrega |
 | Autenticación | Cookie, `auth.ts`, autorización backend y layout protegido; tests de sesión | Auditar permisos visuales de cada operación |
-| Tests | 76 backend, 54 frontend, 23 MySQL y 6 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
+| Tests | 76 backend, 58 frontend, 24 MySQL y 7 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
 | Responsive/UX | Once pantallas principales pobladas sin desborde general a 375/768/1440; Enter y salto al contenido; formulario/ficha de Personajes en ambos temas y tres anchos, contraste medido de textos seleccionados | Revisar formularios/detalles y modo oscuro de los demás módulos; auditoría de accesibilidad completa y estrategia mobile-first pendientes |
 | Instalación | Guía y scripts; actualización `esUnico` documentada | Ensayo limpio completo con la versión final |
 | Propuesta/modelo | Enlaces corregidos y modelo actual basado en entidades | Cotejar con documento del grupo y validación docente |

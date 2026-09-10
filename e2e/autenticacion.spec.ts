@@ -224,6 +224,70 @@ test('usuario edita sus datos y contraseña, vuelve a ingresar y elimina su cuen
   await expect(page.getByRole('alert')).toContainText('Usuario o contraseña incorrecta');
 });
 
+test('catálogo: editar clase y tienda, quitar vínculo y respetar dependencias al eliminar', async ({ page }) => {
+  await registrar(page, 'catalogo_crud');
+  await ingresar(page, 'catalogo_crud');
+  await page.goto('/classes');
+  await page.getByRole('button', { name: '+ Nueva Clase', exact: true }).click();
+  await page.getByLabel('Nombre de la Clase *', { exact: true }).fill('Clase catálogo E2E');
+  await page.getByLabel('Descripción de la Clase *', { exact: true }).fill('Descripción inicial');
+  await page.getByRole('button', { name: 'Crear Clase', exact: true }).click();
+  const card = page.locator('.clase-card').filter({ hasText: 'Clase catálogo E2E' });
+  await card.getByRole('button', { name: 'Editar', exact: true }).click();
+  await page.getByLabel('Descripción de la Clase *', { exact: true }).fill('Descripción actualizada');
+  await page.getByRole('button', { name: 'Actualizar Clase', exact: true }).click();
+  await expect(card).toContainText('Descripción actualizada');
+  await page.reload();
+  await expect(card).toContainText('Descripción actualizada');
+  await card.focus();
+  await card.press('Enter');
+  await expect(page.getByRole('button', { name: 'Cerrar detalle', exact: true })).toBeVisible();
+
+  await page.goto('/stores');
+  await page.getByRole('button', { name: '+ Nueva Tienda', exact: true }).click();
+  await page.getByLabel('Nombre de la tienda *', { exact: true }).fill('Tienda catálogo E2E');
+  await page.getByRole('combobox', { name: /^Tipo de tienda/ }).selectOption('Armas');
+  await page.getByRole('combobox', { name: /^Clase vinculada/ }).selectOption({ label: 'Clase catálogo E2E' });
+  await page.getByRole('button', { name: 'Crear Tienda', exact: true }).click();
+  const row = page.getByRole('row').filter({ hasText: 'Tienda catálogo E2E' });
+  await expect(row).toContainText('Clase catálogo E2E');
+  await page.goto('/classes');
+  page.once('dialog', dialog => dialog.accept());
+  const rejectedDelete = page.waitForResponse(response => response.url().includes('/api/clases/') && response.request().method() === 'DELETE');
+  await card.getByRole('button', { name: 'Eliminar', exact: true }).click();
+  expect((await rejectedDelete).status()).toBe(409);
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(card).toBeVisible();
+
+  await page.goto('/stores');
+  await row.getByRole('button', { name: 'Editar', exact: true }).click();
+  await page.getByLabel('Nombre de la tienda *', { exact: true }).fill('Tienda editada E2E');
+  await page.getByRole('combobox', { name: /^Tipo de tienda/ }).selectOption('Magia');
+  await page.getByRole('combobox', { name: /^Clase vinculada/ }).selectOption('');
+  await page.getByRole('button', { name: 'Actualizar', exact: true }).click();
+  const updated = page.getByRole('row').filter({ hasText: 'Tienda editada E2E' });
+  await expect(updated).toContainText('Magia');
+  await expect(updated).not.toContainText('Clase catálogo E2E');
+  await page.reload();
+  await expect(updated).toContainText('Magia');
+  await expect(updated).not.toContainText('Clase catálogo E2E');
+  await updated.getByRole('button', { name: 'Ver detalle', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /^Detalle de tienda/ })).toBeVisible();
+  page.once('dialog', dialog => dialog.accept());
+  await updated.getByRole('button', { name: 'Eliminar', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Tienda eliminada.');
+  await page.reload();
+  await expect(page.getByRole('button', { name: '+ Nueva Tienda', exact: true })).toBeVisible();
+  await expect(updated).toHaveCount(0);
+  await page.goto('/classes');
+  page.once('dialog', dialog => dialog.accept());
+  await card.getByRole('button', { name: 'Eliminar', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Clase eliminada correctamente.');
+  await page.reload();
+  await expect(page.getByRole('button', { name: '+ Nueva Clase', exact: true })).toBeVisible();
+  await expect(card).toHaveCount(0);
+});
+
 test('dos usuarios completan juego, recompensas, karma y comercio con inventarios', async ({ page: host, browser }) => {
   const player = await browser.newPage({ baseURL: 'http://127.0.0.1:5174' });
   try {

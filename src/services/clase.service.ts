@@ -1,6 +1,14 @@
-import { EntityManager } from '@mikro-orm/core';
+import { EntityManager, LockMode } from '@mikro-orm/core';
 import { Clase } from '../entities/Clase.entity';
+import { Tienda } from '../entities/Tienda.entity';
 import type { ActualizarClaseDTO, ClasePublicaDTO, CrearClaseDTO } from '../types/clase.dto';
+
+export class ClaseConTiendasError extends Error {
+  constructor() {
+    super('La clase tiene tiendas vinculadas. Quitá o cambiá su clase antes de eliminarla.');
+    this.name = 'ClaseConTiendasError';
+  }
+}
 
 export class ClaseService {
   private em: EntityManager;
@@ -35,11 +43,15 @@ export class ClaseService {
   }
 
   async eliminarClase(id: number): Promise<boolean> {
-    const clase = await this.em.findOne(Clase, { idClase: id });
-    if (!clase) return false;
-
-    await this.em.removeAndFlush(clase);
-    return true;
+    return this.em.transactional(async em => {
+      // La FK nullable puede tener ON DELETE SET NULL: no depender de ella para
+      // impedir una desvinculación implícita. El bloqueo serializa nuevas referencias.
+      const clase = await em.findOne(Clase, { idClase: id }, { lockMode: LockMode.PESSIMISTIC_WRITE });
+      if (!clase) return false;
+      if (await em.count(Tienda, { clase: { idClase: id } })) throw new ClaseConTiendasError();
+      await em.removeAndFlush(clase);
+      return true;
+    });
   }
 
   private aClasePublica(c: Clase): ClasePublicaDTO {

@@ -118,3 +118,11 @@ Se reemplazaron fondos y textos fijos por colores semánticos en listado, filtro
 La prueba E2E de pantallas ahora comprueba formulario y ficha a 375, 768 y 1440 píxeles, en temas claro y oscuro. Mide un contraste mínimo de 4.5:1 para textos seleccionados del menú y Personajes, componiendo los fondos RGBA con sus ancestros; no mide imágenes, todos los estados ni toda la aplicación. Se revisaron visualmente las capturas móviles de ambos temas. No se declara accesibilidad completa.
 
 El mismo recorrido edita nombre y raza, verifica persistencia tras recargar, prueba una clase vacía y una con personaje, restablece el filtro y elimina un personaje sin historial ni objetos, comprobando su ausencia tras recargar. La suite completa finalizó con 6 E2E aprobados; compilación, lint y 54 tests del frontend también aprobaron. El `main` original consultado continúa en `cc70a3c05d5fe4337ae5c22e6e9865899efa075f`, ya integrado en esta rama.
+
+## Catálogo: edición, dependencias y teclado
+
+El recorrido nuevo de clases/tiendas detectó dos fallos: Enter no abría la ficha de clase y la baja de una clase con tiendas devolvía 204, anulando silenciosamente el vínculo nullable, pese a lo anunciado por la interfaz. La tarjeta ahora responde a Enter/Espacio sin interceptar el teclado de sus botones internos. El servicio impide la baja con tiendas mediante una transacción, bloqueo de la clase y conflicto HTTP 409; no requiere modificar el esquema existente.
+
+Una prueba MySQL verifica que el rechazo conserva la clase y la referencia de la tienda; al actualizar explícitamente `idClase: null`, permite eliminar la clase. El E2E verifica creación, edición persistida y baja de clase/tienda, detalles y desvinculación. No se certifican todavía todas las variantes de catálogo ni su accesibilidad completa.
+
+Resultado local: compilación backend/frontend, lint frontend, 76 tests backend, 58 frontend, 24 MySQL y 7 E2E aprobados. La [ejecución remota 34480739898](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34480739898) aprobó `315662b`, anterior a estas correcciones; el nuevo commit requiere su propia ejecución.
