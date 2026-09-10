@@ -9,7 +9,7 @@ Estados: **probado** significa que existe una comprobación ejecutada del caso i
 | Requisito de la propuesta | Código y evidencia | Estado de cierre |
 | --- | --- | --- |
 | CRUD Usuario | `usuario.service.ts`, `UsersPage.tsx`; integración de registro, permisos y baja de cuenta | Parcial: auditar edición completa y navegación del CRUD |
-| CRUD Objeto, Tienda y Clase | Integración de catálogo; E2E crea, edita y elimina clase/tienda con recargas, consulta detalles y quita vinculación; rechaza baja de clase vinculada sin perder datos | Parcial: completar edición/baja visual de objetos y revisión de variantes, temas y tamaños de catálogo |
+| CRUD Objeto, Tienda y Clase | Integración de catálogo; E2E crea, edita, consulta y elimina los tres recursos con recargas; verifica valor/nivel/unicidad de objetos, filtros, desvinculación de tienda y rechazo de baja de clase vinculada | Recorridos enumerados probados; pendientes variantes adicionales y revisión de temas/tamaños de catálogo |
 | CRUD Misión | `juego.service.ts`, `ModulePage`; integración de CRUD y recompensas | Probado en integración; completar recorrido visual de edición/baja |
 | Personaje dependiente de Jugador | `personaje.service.ts`, `PersonajesPage`; creación privada, inventario inicial y restricciones en integración; E2E crea, edita nombre/raza, recarga y elimina sin dependencias | Probado para los recorridos enumerados; rechazos por historial/objetos cubiertos por API |
 | Jugador y Anfitrión dependientes de Usuario | `ProfilesPage`, servicios de perfiles; integración de altas, cambios y dependencias | Probado en integración; revisar navegación con ambos perfiles |

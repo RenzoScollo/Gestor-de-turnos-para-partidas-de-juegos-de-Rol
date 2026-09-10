@@ -127,10 +127,10 @@ function ObjetoFormularioBody({
 
       <div className="objeto-campos-numericos">
         <Campo label="Valor" error={errores.valor}>
-          <input type="number" min="0" step="0.01" value={form.valor} onChange={(e) => cambiar('valor', e.target.value)} disabled={guardando} />
+          <input type="number" min="0" step="1" value={form.valor} onChange={(e) => cambiar('valor', e.target.value)} disabled={guardando} />
         </Campo>
         <Campo label="Nivel" error={errores.nivelObjeto}>
-          <input type="number" min="0" step="1" value={form.nivelObjeto} onChange={(e) => cambiar('nivelObjeto', e.target.value)} disabled={guardando} />
+          <input type="number" min="1" step="1" value={form.nivelObjeto} onChange={(e) => cambiar('nivelObjeto', e.target.value)} disabled={guardando} />
         </Campo>
         <Campo label="Posición" error={errores.posicion}>
           <input type="number" min="0" step="1" value={form.posicion} onChange={(e) => cambiar('posicion', e.target.value)} disabled={guardando} />

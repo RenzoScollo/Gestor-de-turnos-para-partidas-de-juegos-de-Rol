@@ -214,8 +214,8 @@ export default function ObjetosPage() {
         <>
           <div className="objeto-filtros" aria-label="Filtros de objetos">
             <label>Sugeridos por clase de mi personaje<select value={sugerirPara} onChange={e => setSugerirPara(e.target.value)}><option value="">Todos los objetos</option>{personajes.map(p => <option key={p.idPersonaje} value={p.idPersonaje}>{p.nombreFicticio}</option>)}</select></label>
-            <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar por nombre o descripción" />
-            <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            <input type="search" aria-label="Buscar objetos por nombre o descripción" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar por nombre o descripción" />
+            <select aria-label="Filtrar objetos por tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
               <option value="">Todos los tipos</option>
               {tipos.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>

@@ -126,3 +126,11 @@ El recorrido nuevo de clases/tiendas detectó dos fallos: Enter no abría la fic
 Una prueba MySQL verifica que el rechazo conserva la clase y la referencia de la tienda; al actualizar explícitamente `idClase: null`, permite eliminar la clase. El E2E verifica creación, edición persistida y baja de clase/tienda, detalles y desvinculación. No se certifican todavía todas las variantes de catálogo ni su accesibilidad completa.
 
 Resultado local: compilación backend/frontend, lint frontend, 76 tests backend, 58 frontend, 24 MySQL y 7 E2E aprobados. La [ejecución remota 34480739898](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34480739898) aprobó `315662b`, anterior a estas correcciones; el nuevo commit requiere su propia ejecución.
+
+## Objetos: CRUD visual y filtros
+
+El recorrido de catálogo se amplió para crear un objeto, rechazar un valor decimal, editar nombre/tipo/valor/nivel/unicidad y verificar los datos tras recargar. También comprueba búsqueda sin resultados, combinación de texto/tipo, restablecimiento, detalle con tienda y eliminación persistida. El recorrido de dos cuentas verifica que el jugador no recibe botones de creación, edición o eliminación del catálogo, conservando la compra.
+
+Los filtros ahora tienen nombres accesibles explícitos. El control numérico de valor avanza de a enteros y el mínimo del nivel es 1, en concordancia con las validaciones existentes. No se cambiaron las reglas de precios ni los permisos del backend.
+
+Se repitieron compilación, lint y 58 tests del frontend, además de los 7 E2E completos: todos aprobados. El `main` original continúa en `cc70a3c`; este avance no altera la base de datos de uso normal ni fusiona ramas.
