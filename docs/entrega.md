@@ -2,6 +2,8 @@
 
 Base de trabajo: `f1a7dfd`, sincronizada desde el repositorio original al fork de Renzo Scollo el 9 de septiembre de 2026. Rama de implementación: `entrega/completar-tp`.
 
+Actualización posterior: se integró `origin/main` en `cc70a3c` (PR #31), con objetos únicos y mejoras de comercio/inventarios. Las pruebas E2E se adaptaron a los nuevos controles y textos. Las bases existentes necesitan agregar `objetos.esUnico`; ver [actualización de instalación](instalacion.md#bases-existentes-campo-de-objeto-único).
+
 Este archivo registra el cierre de la entrega. Una tarea pendiente no se considera cumplida por la sola presencia de código o por un informe anterior.
 
 ## Requisitos y evidencia pendiente
@@ -22,7 +24,7 @@ Este archivo registra el cierre de la entrega. Una tarea pendiente no se conside
 
 `.github/workflows/verificacion.yml` ejecuta compilación, tests y lint del frontend, además de compilación, tests unitarios e integración MySQL del backend. La base del servicio CI es efímera; la suite crea y elimina exclusivamente su propia base aleatoria. La contraseña declarada en el workflow pertenece solo a ese servicio de prueba.
 
-La primera ejecución remota aprobó ambos trabajos: [Actions 34419939705](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34419939705). El workflow ahora incorpora también los recorridos E2E en Chromium y guarda las trazas de los fallos durante siete días; ese agregado debe verificarse en una nueva ejecución remota.
+La primera ejecución remota aprobó ambos trabajos: [Actions 34419939705](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34419939705). El workflow incorpora también E2E en Chromium y guarda las trazas de los fallos durante siete días. La [ejecución 34421403879](https://github.com/RenzoScollo/Gestor-de-turnos-para-partidas-de-juegos-de-Rol/actions/runs/34421403879) aprobó esa incorporación con los dos recorridos iniciales; no demuestra todavía la integración posterior del PR #31 ni el tercer recorrido ampliado.
 
 ## Comunicación HTTP
 

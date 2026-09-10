@@ -151,7 +151,7 @@ test('dos usuarios completan juego, recompensas, karma y comercio con inventario
     await player.getByRole('button', { name: /Arco E2E/ }).click();
     await player.getByRole('button', { name: 'Comprar objeto', exact: true }).click();
     await player.getByRole('button', { name: 'Confirmar compra', exact: true }).click();
-    await expect(player.getByRole('status')).toHaveText('Compra realizada. Dinero restante: 160.');
+    await expect(player.getByRole('status')).toHaveText('Compra realizada con éxito. Saldo restante: $160.');
 
     await player.goto('/inventory');
     await player.getByRole('button', { name: 'Crear', exact: true }).click();
@@ -163,19 +163,19 @@ test('dos usuarios completan juego, recompensas, karma y comercio con inventario
     await player.getByRole('button', { name: 'Guardar', exact: true }).click();
     const inventoryRow = player.locator('tbody tr').filter({ has: player.locator('td:nth-child(2)', { hasText: /^2$/ }) });
     await inventoryRow.getByRole('button', { name: 'Ver detalle' }).click();
-    await player.getByLabel('ID de un objeto del personaje', { exact: true }).fill(String(idObjeto));
-    await player.getByLabel('Posición (comienza en 0)', { exact: true }).fill('2');
+    await player.getByLabel('Objeto del personaje', { exact: true }).fill(String(idObjeto));
+    await player.getByRole('combobox', { name: /^Posición destino/ }).selectOption('2');
     await player.getByRole('button', { name: 'Mover objeto', exact: true }).click();
     await expect(player.getByRole('heading', { name: 'Detalle', exact: true })).toHaveCount(0);
     await inventoryRow.getByRole('button', { name: 'Ver detalle' }).click();
-    await expect(player.getByText(`#${idObjeto} — Arco E2E — posición 2, valor 40`, { exact: true })).toBeVisible();
-    await player.getByRole('combobox', { name: 'Objeto', exact: true }).selectOption(String(idObjeto));
+    await expect(player.locator('.grid-posiciones > div').filter({ hasText: 'Casillero #2' })).toContainText('Arco E2E');
+    await player.getByRole('combobox', { name: 'Objeto a vender', exact: true }).selectOption(String(idObjeto));
     await player.getByRole('spinbutton', { name: /^Precio/ }).fill('28');
-    await player.getByRole('combobox', { name: 'Tienda', exact: true }).selectOption({ label: 'Armería E2E' });
-    await player.getByRole('button', { name: 'Vender', exact: true }).click();
+    await player.getByRole('combobox', { name: 'Tienda receptora', exact: true }).selectOption({ label: '🏪 Armería E2E' });
+    await player.getByRole('button', { name: 'Vender objeto', exact: true }).click();
     await expect(player.getByRole('heading', { name: 'Detalle', exact: true })).toHaveCount(0);
     await inventoryRow.getByRole('button', { name: 'Ver detalle' }).click();
-    await expect(player.getByRole('combobox', { name: 'Objeto', exact: true }).locator('option', { hasText: 'Arco E2E' })).toHaveCount(0);
+    await expect(player.getByRole('combobox', { name: 'Objeto a vender', exact: true }).locator('option', { hasText: 'Arco E2E' })).toHaveCount(0);
     await player.goto('/characters');
     await expect(stats.locator('.stat-item').filter({ hasText: 'Dinero' }).locator('.stat-val')).toHaveText('🪙 188');
   } finally {

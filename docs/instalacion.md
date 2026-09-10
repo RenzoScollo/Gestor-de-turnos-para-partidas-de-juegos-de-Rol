@@ -35,7 +35,24 @@ Configurar `DB_NAME=rpg_desarrollo` y un usuario con permisos sobre esa base. De
 npm run schema:create
 ```
 
-Usar ese comando únicamente en una base nueva y vacía. Si ya hay datos, conservarlos: esta actualización no necesita recrear tablas. `SQL/rpg.sql` es una alternativa histórica que contiene estructura y datos de ejemplo; no ejecutarlo además de `schema:create` ni sobre una base existente.
+Usar ese comando únicamente en una base nueva y vacía. Si ya hay datos, conservarlos y aplicar la actualización incremental indicada a continuación. `SQL/rpg.sql` es una alternativa histórica que contiene estructura y datos de ejemplo; no ejecutarlo además de `schema:create` ni sobre una base existente.
+
+### Bases existentes: campo de objeto único
+
+El main integrado del PR #31 incorpora `objetos.esUnico`. Antes de arrancar con una base anterior, hacer una copia de seguridad, detener el backend y seleccionar la base configurada en `DB_NAME` en el cliente MySQL. Comprobar:
+
+```sql
+SELECT DATABASE();
+SHOW COLUMNS FROM objetos LIKE 'esUnico';
+```
+
+Solo si la segunda consulta no devuelve ninguna columna, ejecutar sobre esa misma base:
+
+```sql
+ALTER TABLE objetos ADD COLUMN esUnico TINYINT(1) NOT NULL DEFAULT 0;
+```
+
+Esto conserva los objetos y marca los existentes como no únicos. Si la columna ya existe, no repetir el `ALTER TABLE`. Las bases nuevas generadas con `schema:create` ya incluyen el campo. No ejecutar `schema:create` ni recrear la base para aplicar este cambio.
 
 El catálogo puede cargarse desde la interfaz con una cuenta de anfitrión. Las cuentas nuevas se crean desde Registro.
 
