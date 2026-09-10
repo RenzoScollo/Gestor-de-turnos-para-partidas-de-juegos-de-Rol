@@ -110,3 +110,11 @@ La [ejecución remota 34478165867](https://github.com/RenzoScollo/Gestor-de-turn
 El listado mostraba botones de editar/eliminar también en tarjetas de personajes ajenos; el callback impedía la operación, pero dejaba controles sin efecto. La página ahora informa el permiso por personaje y el componente solo ofrece acciones autorizadas. Se mantiene el control de propiedad del servidor, independiente de esta mejora visual.
 
 Las tarjetas también responden a Enter/Espacio y exponen su selección. El teclado de un botón interno no activa accidentalmente la tarjeta. Cuatro tests nuevos del componente cubren permisos y teclado; total frontend: 54. El recorrido E2E verifica las acciones del propietario y la ausencia de acciones para el anfitrión sobre personajes ajenos.
+
+## Personajes: temas, ficha y CRUD visual
+
+Se reemplazaron fondos y textos fijos por colores semánticos en listado, filtros, estado vacío, formulario y ficha. El formulario activo está en `PersonajesPage`; también se ajustó el componente reutilizable `PersonajeFormulario`. La ficha admite nombres largos sin desbordar y las acciones se acomodan en filas. El menú recupera el color de texto del tema y el enlace de salto queda recortado mientras no recibe foco.
+
+La prueba E2E de pantallas ahora comprueba formulario y ficha a 375, 768 y 1440 píxeles, en temas claro y oscuro. Mide un contraste mínimo de 4.5:1 para textos seleccionados del menú y Personajes, componiendo los fondos RGBA con sus ancestros; no mide imágenes, todos los estados ni toda la aplicación. Se revisaron visualmente las capturas móviles de ambos temas. No se declara accesibilidad completa.
+
+El mismo recorrido edita nombre y raza, verifica persistencia tras recargar, prueba una clase vacía y una con personaje, restablece el filtro y elimina un personaje sin historial ni objetos, comprobando su ausencia tras recargar. La suite completa finalizó con 6 E2E aprobados; compilación, lint y 54 tests del frontend también aprobaron. El `main` original consultado continúa en `cc70a3c05d5fe4337ae5c22e6e9865899efa075f`, ya integrado en esta rama.

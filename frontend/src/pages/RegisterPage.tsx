@@ -25,7 +25,7 @@ export default function RegisterPage() {
       {error && <p role="alert">{error}</p>}
 
       {mensaje && (
-        <p style={{ background: '#eee', padding: '0.5rem', borderRadius: 4 }}>
+        <p style={{ background: 'var(--surface-muted)', color: 'var(--text-h)', padding: '0.5rem', borderRadius: 4 }}>
           {mensaje}
         </p>
       )}

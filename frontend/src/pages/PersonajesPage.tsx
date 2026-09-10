@@ -177,7 +177,7 @@ export default function PersonajesPage() {
     <section style={{ padding: '1.5rem' }}>
       <header style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div>
-          <p style={{ fontSize: '0.8rem', color: '#718096', textTransform: 'uppercase', margin: 0 }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', margin: 0 }}>
             Juego de Rol
           </p>
           <h1 style={{ margin: 0 }}>Personajes</h1>
@@ -202,7 +202,7 @@ export default function PersonajesPage() {
       )}
 
       {mostrarFormulario && (
-        <div style={{ background: '#f7fafc', padding: '1.5rem', borderRadius: '8px', maxWidth: '640px', marginBottom: '1.5rem' }}>
+        <div className="personaje-form" style={{ maxWidth: '640px', marginBottom: '1.5rem' }}>
           <h2 style={{ marginTop: 0 }}>{enEdicion ? 'Editar Personaje' : 'Crear Nuevo Personaje'}</h2>
           {errorForm && (
             <p role="alert" style={{ color: '#c53030', background: '#fff5f5', padding: '0.5rem 0.75rem', borderRadius: '4px' }}>
@@ -282,7 +282,7 @@ export default function PersonajesPage() {
                 />
               </label>
             )}
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
               <button type="submit" className="btn-purple" disabled={guardando}>
                 {guardando ? 'Guardando…' : enEdicion ? 'Actualizar' : 'Crear Personaje'}
               </button>
@@ -314,7 +314,7 @@ export default function PersonajesPage() {
       />
 
       {seleccionado && (
-        <aside style={{ marginTop: '1.5rem', padding: '1rem', background: '#f7fafc', borderRadius: '8px', maxWidth: '520px' }}>
+        <aside style={{ marginTop: '1.5rem', maxWidth: '520px' }}>
           <PersonajeDetalle personaje={seleccionado} clases={clases} onVolver={() => setSeleccionado(null)} />
         </aside>
       )}

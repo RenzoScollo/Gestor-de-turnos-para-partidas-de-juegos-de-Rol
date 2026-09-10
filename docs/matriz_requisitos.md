@@ -11,11 +11,11 @@ Estados: **probado** significa que existe una comprobación ejecutada del caso i
 | CRUD Usuario | `usuario.service.ts`, `UsersPage.tsx`; integración de registro, permisos y baja de cuenta | Parcial: auditar edición completa y navegación del CRUD |
 | CRUD Objeto, Tienda y Clase | Servicios respectivos, pantallas específicas; integración «CRUD de catálogo»; creación y compra en E2E | Parcial: revisar todas las variantes y detalles visuales |
 | CRUD Misión | `juego.service.ts`, `ModulePage`; integración de CRUD y recompensas | Probado en integración; completar recorrido visual de edición/baja |
-| Personaje dependiente de Jugador | `personaje.service.ts`, `PersonajesPage`; creación privada, inventario inicial y restricciones en integración | Parcial: completar edición/baja y filtro en navegador |
+| Personaje dependiente de Jugador | `personaje.service.ts`, `PersonajesPage`; creación privada, inventario inicial y restricciones en integración; E2E crea, edita nombre/raza, recarga y elimina sin dependencias | Probado para los recorridos enumerados; rechazos por historial/objetos cubiertos por API |
 | Jugador y Anfitrión dependientes de Usuario | `ProfilesPage`, servicios de perfiles; integración de altas, cambios y dependencias | Probado en integración; revisar navegación con ambos perfiles |
 | Partidas activas, privacidad y anfitrión; detalle | Integración excluye una partida finalizada y verifica privacidad/anfitrión en detalle | Probado en API; falta recorrido específico del filtro en navegador |
 | Objetos sugeridos por clase y detalle | Integración distingue dos clases, excluye el objeto comprado y rechaza personaje ajeno | Probado en API; falta recorrido específico del filtro en navegador |
-| Personajes por clase y detalle | Integración distingue clases, comprueba los atributos requeridos y consulta sin filtro | Probado en API; falta filtro/restablecimiento visual |
+| Personajes por clase y detalle | Integración distingue clases y atributos; E2E abre ficha, selecciona clase sin personajes, filtra por clase con personaje y restablece todas | Probado en API y navegador para esos casos |
 | Jugar sesión + realizar misión | E2E de dos cuentas: asistencia, inicio, misión, 50 XP y 100 monedas, cierre | Probado para el recorrido positivo; integración cubre rechazos e idempotencia |
 | Comercialización | E2E: comprar por 40 y vender por 28; integración de saldo, propiedad, rollback y concurrencia | Probado para los casos enumerados |
 | CRUD Partida y Sesión | Servicios, `ModulePage`; creación E2E y CRUD de sesiones planificadas en integración | Parcial: auditar recorrido visual completo de partidas |
@@ -35,7 +35,7 @@ Las [condiciones de la cátedra](https://github.com/utnfrrodsw/tp) requieren sep
 | Arquitectura | React/Vite separado de Express; servicios/DTO/entidades; MikroORM y MySQL | Revisar consistencia final de contratos con el código de entrega |
 | Autenticación | Cookie, `auth.ts`, autorización backend y layout protegido; tests de sesión | Auditar permisos visuales de cada operación |
 | Tests | 76 backend, 54 frontend, 23 MySQL y 6 E2E locales registrados en seguimiento | Adjuntar ejecución remota final e identificar participación real de integrantes |
-| Responsive/UX | Once pantallas principales pobladas sin desborde general a 375/768/1440; Enter y salto al contenido; corrección visual en Personajes | Revisar formularios/detalles, contrastes y modo oscuro; revisar estrategia mobile-first |
+| Responsive/UX | Once pantallas principales pobladas sin desborde general a 375/768/1440; Enter y salto al contenido; formulario/ficha de Personajes en ambos temas y tres anchos, contraste medido de textos seleccionados | Revisar formularios/detalles y modo oscuro de los demás módulos; auditoría de accesibilidad completa y estrategia mobile-first pendientes |
 | Instalación | Guía y scripts; actualización `esUnico` documentada | Ensayo limpio completo con la versión final |
 | Propuesta/modelo | Enlaces corregidos y modelo actual basado en entidades | Cotejar con documento del grupo y validación docente |
 | API | [Contratos HTTP](api.md): entradas, salidas, permisos, sesión, errores y acciones | Revisión final de ejemplos y cambios posteriores |

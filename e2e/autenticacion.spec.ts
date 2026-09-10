@@ -120,6 +120,74 @@ test('todas las pantallas principales caben en móvil, tablet y escritorio', asy
     }
   }
   expect(errores).toEqual([]);
+
+  // El mismo módulo debe seguir siendo usable con ambos temas, incluyendo ficha y edición.
+  await page.goto('/characters');
+  const characterCard = page.locator('.personaje-card').filter({ hasText: 'Explorador de las Tierras del Norte' });
+  await expect(characterCard).toBeVisible();
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+    for (const width of [375, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await characterCard.click();
+      await expect(page.getByRole('heading', { name: /Ficha de Personaje/ })).toBeVisible();
+      await characterCard.getByRole('button', { name: 'Editar', exact: true }).click();
+      const name = page.getByLabel('Nombre ficticio *', { exact: true });
+      await expect(name).toBeVisible();
+      // Contraste de los textos principales contra su fondo opaco efectivo (WCAG AA, 4.5:1).
+      // Compone fondos RGBA con sus ancestros; no sustituye una auditoría de imágenes o de toda la UI.
+      const contrasts = await page.locator('.nav-menu a, .personaje-nombre, .personaje-meta, .personaje-clase-raza, .stat-val, .stat-lbl, .personaje-filtros label, .personaje-form h2, .personaje-form h3, .personaje-form input').evaluateAll(elements => {
+        const rgba = (color: string) => color.match(/[\d.]+/g)!.map(Number);
+        const luminance = (color: number[]) => color.map(channel => {
+          const c = channel / 255;
+          return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        }).reduce((sum, value, i) => sum + value * [0.2126, 0.7152, 0.0722][i], 0);
+        return elements.map(element => {
+          const layers: number[][] = [];
+          for (let parent: Element | null = element; parent; parent = parent.parentElement) {
+            layers.push(rgba(getComputedStyle(parent).backgroundColor));
+          }
+          const effectiveBackground = layers.reverse().reduce((base, layer) => {
+            const alpha = layer[3] ?? 1;
+            return base.map((channel, i) => layer[i] * alpha + channel * (1 - alpha));
+          }, [255, 255, 255]);
+          const foreground = luminance(rgba(getComputedStyle(element).color).slice(0, 3));
+          const background = luminance(effectiveBackground);
+          return { text: element.textContent?.slice(0, 60) || element.tagName, ratio: (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05) };
+        });
+      });
+      expect(contrasts.length).toBeGreaterThan(0);
+      expect(contrasts.filter(item => item.ratio < 4.5), `${colorScheme} ${width}px`).toEqual([]);
+      await expect.poll(() => page.getByRole('main').evaluate(main => Math.max(document.documentElement.scrollWidth - window.innerWidth, main.scrollWidth - main.clientWidth))).toBeLessThanOrEqual(1);
+      await page.screenshot({ path: test.info().outputPath(`personaje-form-detalle-${colorScheme}-${width}.png`), fullPage: true });
+      await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    }
+  }
+  await characterCard.getByRole('button', { name: 'Editar', exact: true }).click();
+  await page.getByLabel('Nombre ficticio *', { exact: true }).fill('Explorador actualizado');
+  await page.getByLabel('Raza *', { exact: true }).fill('Elfo');
+  await page.getByRole('button', { name: 'Actualizar', exact: true }).click();
+  const updatedCard = page.locator('.personaje-card').filter({ hasText: 'Explorador actualizado' });
+  await expect(updatedCard).toContainText('Elfo');
+  await page.reload();
+  await expect(updatedCard).toContainText('Elfo');
+  // Clase sin personajes: verifica el filtro negativo y el restablecimiento del listado.
+  const emptyClass = await crear('clases', { nombreClase: 'Clase sin personajes E2E', descripcionClase: 'Prueba del estado vacío filtrado.' });
+  await page.reload();
+  await page.getByLabel('Filtrar por Clase:').selectOption(String(emptyClass.idClase));
+  await expect(page.locator('.personaje-card')).toHaveCount(0);
+  await expect(page.getByText('No hay personajes creados con la clase seleccionada.')).toBeVisible();
+  await page.getByLabel('Filtrar por Clase:').selectOption(String(clase.idClase));
+  await expect(updatedCard).toBeVisible();
+  await page.getByLabel('Filtrar por Clase:').selectOption('todas');
+  await expect(updatedCard).toBeVisible();
+  page.once('dialog', dialog => dialog.accept());
+  await updatedCard.getByRole('button', { name: 'Eliminar', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Personaje eliminado.');
+  await expect(updatedCard).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel('Filtrar por Clase:')).toBeVisible();
+  await expect(updatedCard).toHaveCount(0);
 });
 
 test('usuario edita sus datos y contraseña, vuelve a ingresar y elimina su cuenta', async ({ page }) => {
