@@ -16,18 +16,19 @@ const cookieName = 'rpg_session';
 const nicknameEnUso = 'Ese nickname ya está en uso. Elegí otro para poder iniciar sesión.';
 const sessionDuration = 8 * 60 * 60 * 1000;
 
+// Temporizadores globales compartidos por todas las instancias de createAuth
+const globalAttempts = new Map<string, { count: number; expires: number }>();
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of globalAttempts) {
+    if (value.expires <= now) globalAttempts.delete(key);
+  }
+}, 5 * 60 * 1000).unref();
+
 export function createAuth(em: EntityManager) {
   // Los tokens solo se entregan en cookies HttpOnly. Reiniciar el servidor cierra sesiones.
   const sessions = new Map<string, { id: number; password: string; expires: number }>();
-  const attempts = new Map<string, { count: number; expires: number }>();
-
-  // Limpieza periódica de intentos en lugar de hacerlo en cada petición
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, value] of attempts) {
-      if (value.expires <= now) attempts.delete(key);
-    }
-  }, 5 * 60 * 1000).unref();
+  const attempts = globalAttempts;
 
   const cookie = { httpOnly: true, sameSite: 'strict' as const, secure: process.env.NODE_ENV === 'production', path: '/api' };
   const tokenFrom = (req: Request) => req.headers.cookie?.split(';').map(s => s.trim()).find(s => s.startsWith(`${cookieName}=`))?.slice(cookieName.length + 1);
