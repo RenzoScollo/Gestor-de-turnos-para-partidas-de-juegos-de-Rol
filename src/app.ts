@@ -68,7 +68,7 @@ export function createApp(orm: MikroORM) {
   // Rutas de la API
   const auth = createAuth(orm.em);
   app.use('/api/auth', auth.router);
-  app.use('/api', auth.requireAuth, authorizeCrud(orm.em), crearJuegoRouter(orm.em));
+  app.use('/api', auth.requireAuth, authorizeCrud(orm.em));
   app.use('/api/usuarios', crearUsuarioRouter(orm.em));
   app.use('/api/clases', crearClaseRouter(orm.em));
   app.use('/api/objetos', crearObjetoRouter(orm.em));
@@ -77,6 +77,7 @@ export function createApp(orm: MikroORM) {
   app.use('/api/anfitriones', crearAnfitrionRouter(orm.em));
   app.use('/api/partidas', crearPartidaRouter(orm.em));
   app.use('/api/personajes', crearPersonajeRouter(orm.em));
+  app.use('/api', crearJuegoRouter(orm.em));
 
   // 404
   app.use((req, res) => {
