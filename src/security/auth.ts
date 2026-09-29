@@ -20,6 +20,15 @@ export function createAuth(em: EntityManager) {
   // Los tokens solo se entregan en cookies HttpOnly. Reiniciar el servidor cierra sesiones.
   const sessions = new Map<string, { id: number; password: string; expires: number }>();
   const attempts = new Map<string, { count: number; expires: number }>();
+
+  // Limpieza periódica de intentos en lugar de hacerlo en cada petición
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of attempts) {
+      if (value.expires <= now) attempts.delete(key);
+    }
+  }, 5 * 60 * 1000).unref();
+
   const cookie = { httpOnly: true, sameSite: 'strict' as const, secure: process.env.NODE_ENV === 'production', path: '/api' };
   const tokenFrom = (req: Request) => req.headers.cookie?.split(';').map(s => s.trim()).find(s => s.startsWith(`${cookieName}=`))?.slice(cookieName.length + 1);
   const identity = async (u: Usuario): Promise<Identity> => ({
@@ -46,9 +55,10 @@ export function createAuth(em: EntityManager) {
   router.use((req, res, next) => {
     if (req.method !== 'POST' || req.path === '/logout') { next(); return; }
     const now = Date.now();
-    for (const [key, value] of attempts) if (value.expires <= now) attempts.delete(key);
     const key = req.ip ?? 'unknown';
-    const value = attempts.get(key) ?? { count: 0, expires: now + 15 * 60 * 1000 };
+    let value = attempts.get(key);
+    if (value && value.expires <= now) value = undefined;
+    value = value ?? { count: 0, expires: now + 15 * 60 * 1000 };
     value.count++; attempts.set(key, value);
     if (value.count > 30) { res.status(429).json({ message: 'Demasiados intentos. Probá en 15 minutos.' }); return; }
     next();
