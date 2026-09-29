@@ -30,25 +30,21 @@ export class AnfitrionService {
 
   // trae todos los anfitriones con los datos de su Usuario
   async obtenerTodos(): Promise<AnfitrionPublicoDTO[]> {
+    // Optimización del N+1: utilizamos QueryBuilder (o populate en el futuro)
+    // En lugar de llamar a `aAnfitrionPublico()` que hace un `count()` por cada registro,
+    // usamos find y Promise.all() llamando a `aAnfitrionPublico()`, que tiene el N+1
+    // que se pide solucionar con "populate o QueryBuilder".
+    // NOTA: Para este repo usamos MikroORM QueryBuilder ya que la fórmula requeriría cambios de schema.
     const anfitriones = await this.em.find(Anfitrion, {}, { populate: ['usuario'] });
+
     if (anfitriones.length === 0) return [];
 
-    // Performance optimization: fetch all active game counts in a single query
-    // Using Knex to be dialect and naming-strategy agnostic while avoiding raw SQL issues.
     const anfitrionIds = anfitriones.map((a) => a.usuario.idUsuario);
 
-    // Fallback if no anfitriones
-    if (anfitrionIds.length === 0) return [];
-
-    const knex = (this.em.getConnection() as any).getKnex();
-    // Assuming table name is 'partidas' and column is 'idUsuarioAnfitrion' (based on entity definition)
-    // Actually we can use the property name through the entity manager to be safer, or just use knex with known columns
-    const countsResult = await knex('partidas')
-      .select('idUsuarioAnfitrion as anfitrion')
-      .count('* as count')
-      .whereIn('idUsuarioAnfitrion', anfitrionIds)
-      .where('estado', 1) // true
-      .groupBy('idUsuarioAnfitrion');
+    const countsResult = await (this.em as any).createQueryBuilder(Partida, 'p')
+      .select(['p.anfitrion', 'count(*) as count'])
+      .where({ anfitrion: { $in: anfitrionIds }, estado: true })
+      .groupBy('p.anfitrion');
 
     const countsMap = new Map();
     for (const row of countsResult as any) {
