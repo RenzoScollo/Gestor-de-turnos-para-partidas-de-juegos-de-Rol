@@ -19,6 +19,34 @@ const sessionDuration = 8 * 60 * 60 * 1000;
 export function createAuth(em: EntityManager) {
   // Los tokens solo se entregan en cookies HttpOnly. Reiniciar el servidor cierra sesiones.
   const sessions = new Map<string, { id: number; password: string; expires: number }>();
+  const userSessions = new Map<number, Set<string>>();
+
+  const deleteSession = (key: string) => {
+    const session = sessions.get(key);
+    if (session) {
+      sessions.delete(key);
+      const userKeys = userSessions.get(session.id);
+      if (userKeys) {
+        userKeys.delete(key);
+        if (userKeys.size === 0) userSessions.delete(session.id);
+      }
+    }
+  };
+
+  const addSession = (key: string, session: { id: number; password: string; expires: number }) => {
+    sessions.set(key, session);
+    const userKeys = userSessions.get(session.id) ?? new Set();
+    userKeys.add(key);
+    userSessions.set(session.id, userKeys);
+  };
+
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of sessions) {
+      if (value.expires <= now) deleteSession(key);
+    }
+  }, 15 * 60 * 1000).unref();
+
   const attempts = new Map<string, { count: number; expires: number }>();
   const cookie = { httpOnly: true, sameSite: 'strict' as const, secure: process.env.NODE_ENV === 'production', path: '/api' };
   const tokenFrom = (req: Request) => req.headers.cookie?.split(';').map(s => s.trim()).find(s => s.startsWith(`${cookieName}=`))?.slice(cookieName.length + 1);
@@ -32,12 +60,12 @@ export function createAuth(em: EntityManager) {
     const key = token ? digest(token) : '';
     const session = sessions.get(key);
     if (!session || session.expires <= Date.now()) {
-      sessions.delete(key);
+      if (key) deleteSession(key);
       res.status(401).json({ message: 'Iniciá sesión para continuar' }); return;
     }
     const user = await em.findOne(Usuario, { idUsuario: session.id });
     if (!user || user.contrasena !== session.password) {
-      sessions.delete(key); res.status(401).json({ message: 'La sesión expiró' }); return;
+      deleteSession(key); res.status(401).json({ message: 'La sesión expiró' }); return;
     }
     req.identity = await identity(user);
     next();
@@ -79,10 +107,20 @@ export function createAuth(em: EntityManager) {
     // Derivación aun para nombres inexistentes: evita la respuesta rápida por usuario desconocido.
     const valid = await verifyPassword(data.contrasena, u?.contrasena ?? `s$${'0'.repeat(32)}$${'0'.repeat(64)}`);
     if (!u || !valid) { res.status(401).json({ message: 'Usuario o contraseña incorrecta' }); return; }
-    for (const [key, value] of sessions) if (value.expires <= Date.now() || value.id === u.idUsuario) sessions.delete(key);
-    if (sessions.size >= 5000) { res.status(503).json({ message: 'Servidor ocupado. Intentá más tarde.' }); return; }
+
+    const userKeys = userSessions.get(u.idUsuario);
+    if (userKeys) {
+      for (const key of Array.from(userKeys)) deleteSession(key);
+    }
+
+    if (sessions.size >= 5000) {
+      const now = Date.now();
+      for (const [key, value] of sessions) if (value.expires <= now) deleteSession(key);
+      if (sessions.size >= 5000) { res.status(503).json({ message: 'Servidor ocupado. Intentá más tarde.' }); return; }
+    }
+
     const token = randomBytes(32).toString('hex');
-    sessions.set(digest(token), { id: u.idUsuario, password: u.contrasena, expires: Date.now() + sessionDuration });
+    addSession(digest(token), { id: u.idUsuario, password: u.contrasena, expires: Date.now() + sessionDuration });
     res.cookie(cookieName, token, { ...cookie, maxAge: sessionDuration }).json({ usuario: publicUser(u), roles: await identity(u) });
   });
   router.get('/me', requireAuth, async (req, res) => {
@@ -90,7 +128,7 @@ export function createAuth(em: EntityManager) {
     res.json({ usuario: publicUser(u), roles: req.identity });
   });
   router.post('/logout', (req, res) => {
-    const token = tokenFrom(req); if (token) sessions.delete(digest(token));
+    const token = tokenFrom(req); if (token) deleteSession(digest(token));
     res.clearCookie(cookieName, cookie).sendStatus(204);
   });
   return { router, requireAuth };
