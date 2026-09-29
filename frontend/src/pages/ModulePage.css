@@ -9,7 +9,3 @@
 .module-table td, .module-table th { text-align: left; padding: .6rem; border-bottom: 1px solid #999; }
 .module-page dl > div { display: flex; gap: 1rem; flex-wrap: wrap; }
 .module-page dt { font-weight: 600; min-width: 10rem; }
-.module-table {
-  max-width: 100vw;
-  overflow-x: auto;
-}
