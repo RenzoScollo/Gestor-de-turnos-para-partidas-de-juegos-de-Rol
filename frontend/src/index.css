@@ -106,7 +106,9 @@ code {
 }
 
 /* Tablas anchas: se desplazan dentro de su propio contenedor y no arrastran la pantalla. */
-.tabla-scroll {
+.tabla-scroll,
+.module-table,
+.table-wrapper {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;

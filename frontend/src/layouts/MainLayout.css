@@ -143,7 +143,7 @@
 
 /* En un teléfono el menú pasa a ser una tira desplazable: ocupaba siete líneas
    de alto y empujaba el contenido fuera de la primera pantalla. */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .nav-menu {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -152,10 +152,11 @@
 
   .nav-menu li {
     flex: 0 0 auto;
+    padding: 0;
   }
 
   .nav-menu a {
     white-space: nowrap;
-    padding: 0.5rem 0.75rem;
+    padding: 1rem 0.75rem;
   }
 }
