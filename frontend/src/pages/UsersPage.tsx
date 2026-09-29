@@ -28,13 +28,13 @@ export default function UsersPage() {
     catch (e) { setError(e instanceof Error ? e.message : 'No se pudo eliminar'); }
     finally { setBusy(false); }
   };
-  return <section className="users-page app-container">
+  return <section className="users-page">
     <h1>Gestión de Usuarios</h1>
     {error && <p role="alert">{error}</p>}
     {usuarioLogueado && rolDe(usuarioLogueado.idUsuario) === 'anfitrion' && !editing && <button onClick={() => { setSelected(undefined); setEditing(true); }}>Nuevo usuario</button>}
-    {editing ? <UsuarioFormulario usuario={selected} onGuardar={save} onCancelar={() => setEditing(false)} /> : <div className="usuarios-layout">
+    {editing ? <UsuarioFormulario usuario={selected} onGuardar={save} onCancelar={() => setEditing(false)} /> : <>
       <UsuarioLista usuarios={usuarios} onSeleccionar={setSelected} cargando={busy} usuarioSeleccionadoId={selected?.idUsuario} />
       <UsuarioDetalle usuario={selected} onCerrar={() => setSelected(undefined)} onEditar={own ? () => setEditing(true) : undefined} onEliminar={own ? remove : undefined} />
-    </div>}
+    </>}
   </section>;
 }
