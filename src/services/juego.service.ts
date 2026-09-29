@@ -121,8 +121,14 @@ export class JuegoService {
       const money = data.recompensas.reduce((n, r) => n + r.dinero, 0);
       const xp = data.recompensas.reduce((n, r) => n + r.xp, 0);
       conflict(money !== m.dineroTotal || xp !== m.xpTotal, 'El reparto debe coincidir exactamente con el dinero y XP de la misión');
+
+      const characterIds = data.recompensas.map(r => r.idPersonaje);
+      const characters = await tx.find(Personaje, { idPersonaje: { $in: characterIds } }, lock);
+      conflict(characters.length !== new Set(characterIds).size, 'No se encontraron todos los personajes de las recompensas');
+      const pMap = new Map(characters.map(p => [p.idPersonaje, p]));
+
       for (const reward of [...data.recompensas].sort((a, b) => a.idPersonaje - b.idPersonaje)) {
-        const p = await tx.findOneOrFail(Personaje, { idPersonaje: reward.idPersonaje }, lock);
+        const p = pMap.get(reward.idPersonaje)!;
         conflict(p.dinero + reward.dinero > 2147483647 || p.xp + reward.xp > 2147483647, 'La recompensa excede el límite de almacenamiento');
         p.dinero += reward.dinero; p.xp += reward.xp;
       }
