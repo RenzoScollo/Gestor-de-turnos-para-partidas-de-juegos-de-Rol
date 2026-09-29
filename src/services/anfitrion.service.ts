@@ -31,7 +31,38 @@ export class AnfitrionService {
   // trae todos los anfitriones con los datos de su Usuario
   async obtenerTodos(): Promise<AnfitrionPublicoDTO[]> {
     const anfitriones = await this.em.find(Anfitrion, {}, { populate: ['usuario'] });
-    return Promise.all(anfitriones.map((a) => this.aAnfitrionPublico(a)));
+    if (anfitriones.length === 0) return [];
+
+    // Performance optimization: fetch all active game counts in a single query
+    // Using Knex to be dialect and naming-strategy agnostic while avoiding raw SQL issues.
+    const anfitrionIds = anfitriones.map((a) => a.usuario.idUsuario);
+
+    // Fallback if no anfitriones
+    if (anfitrionIds.length === 0) return [];
+
+    const knex = (this.em.getConnection() as any).getKnex();
+    // Assuming table name is 'partidas' and column is 'idUsuarioAnfitrion' (based on entity definition)
+    // Actually we can use the property name through the entity manager to be safer, or just use knex with known columns
+    const countsResult = await knex('partidas')
+      .select('idUsuarioAnfitrion as anfitrion')
+      .count('* as count')
+      .whereIn('idUsuarioAnfitrion', anfitrionIds)
+      .where('estado', 1) // true
+      .groupBy('idUsuarioAnfitrion');
+
+    const countsMap = new Map();
+    for (const row of countsResult as any) {
+      countsMap.set(row.anfitrion, Number(row.count));
+    }
+
+    return anfitriones.map((a) => ({
+      idUsuario: a.usuario.idUsuario,
+      cantPartidasActuales: countsMap.get(a.usuario.idUsuario) || 0,
+      karma: a.karma,
+      nombreUsuario: a.usuario.nombreUsuario,
+      nickname: a.usuario.nickname,
+      imagen: a.usuario.imagen,
+    }));
   }
 
   // busca un anfitrion por el idUsuario
