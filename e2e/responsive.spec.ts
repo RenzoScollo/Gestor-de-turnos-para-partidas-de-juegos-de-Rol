@@ -41,7 +41,7 @@ async function medir(page: Page): Promise<Medicion> {
     // No alcanza con cualquier contenedor: el área principal entera no debe desplazarse.
     // .nav-menu es una tira desplazable a propósito en pantalla chica: sus enlaces
     // siguen accesibles con swipe y no arrastran el resto de la página.
-    const contenedoresValidos = /tabla-scroll|module-table|table-wrapper|nav-menu/;
+    const contenedoresValidos = /tabla-scroll|module-table|table-wrapper|nav-menu|app-table/;
     const enContenedorDesplazable = (elemento: Element) => {
       let padre = elemento.parentElement;
       while (padre && padre !== document.body) {
