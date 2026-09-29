@@ -33,7 +33,7 @@ describe('ClaseController', () => {
 
   describe('obtenerTodos', () => {
     it('debe responder 200 con la lista de clases', async () => {
-      const mockClases = [{ idClase: 1, nombre: 'Guerrero', descripcion: 'Luchador cuerpo a cuerpo' }];
+      const mockClases = [{ idClase: 1, nombreClase: 'Guerrero', descripcionClase: 'Luchador cuerpo a cuerpo' }];
       vi.mocked(mockService.obtenerTodos!).mockResolvedValue(mockClases);
 
       await controller.obtenerTodos(req as Request, res as Response);
